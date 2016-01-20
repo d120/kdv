@@ -1,0 +1,7 @@
+<?php
+define("DATABASE_URI", "mysql:host=localhost;dbname=the_database;charset=utf8");
+define("DATABASE_USER", "the_username");
+define("DATABASE_PASSWORD", "**********");
+
+define("BASE_URL", "https://www.example.com/kdv/");
+
