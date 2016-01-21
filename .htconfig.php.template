@@ -5,3 +5,8 @@ define("DATABASE_PASSWORD", "**********");
 
 define("BASE_URL", "https://www.example.com/kdv/");
 
+define("ABC_REGISTER",   "2110100001000");
+define("ABC_REMOVECARD", "2110100002007");
+define("ABC_STORNO",     "2110100003004");
+
+

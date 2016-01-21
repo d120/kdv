@@ -1,7 +1,7 @@
 
-<h1>Account (<?= $user["email"] ?>)</h1>
+<h2>Account (<?= $user["email"] ?>)</h2>
 
-<form action="<?= $action ?>" method="post">
+<form action="<?= htmlspecialchars($action) ?>" method="post">
 <p>Name: <input type="text" name="fullname" value="<?=$user["fullname"]?>"></p>
 <p>IBAN: <input type="text" name="iban" value="<?=$user["iban"]?>"></p>
 <p><input type="submit" name="update" value="Speichern"></p>
@@ -23,6 +23,9 @@
 </table>
 
 <form action="<?= $action ?>" method="post">
-<p><input type="submit" name="add_barcode" value="Neuen Barcode hinzufügen"></p>
+<p><select name="scanner_id">
+<?php foreach($scanners as $d) : ?><option><?= $d["id"]?></option><?php endforeach; ?>
+</select>
+<input type="submit" name="add_barcode" value="Neuen Barcode hinzufügen"></p>
 </form>
 

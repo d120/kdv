@@ -4,14 +4,30 @@ include "../stuff.php";
 header("Content-Type: text/html; charset=utf8");
 
 function userlist() {
-  $users = sql("SELECT *, (select sum(charge) from ledger where user_id=u.id) summe FROM users u ", []);
-  echo "<table>";
-  echo "<tr><th>Id</th><th>Email</th><th>Name</th><th>Guthaben/Schulden</th></tr>";
+  $users = sql("SELECT *, (select sum(charge) from ledger where user_id=u.id and storno is null) summe FROM users u ", []);
+  $q="";
+  $q.= "<br><table class='table table-bordered'>";
+  $q.= "<tr><th>Id</th><th>Email</th><th>Name</th><th>Guthaben/Schulden</th><th>Aktion</th></tr>";
   foreach($users as $d) {
-    echo "<tr><td><a href='?m=user&id=".$d["id"]."'>".$d["id"]."</a></td><td><a href='?m=user&id=".$d["id"]."'>".htmlentities($d["email"])."</a></td><td>".htmlentities($d["fullname"])."</td><td><a href='?m=userledger&id=".$d["id"]."'>".sprintf("%04.2f", -($d["summe"]/100))."</a></td></tr>";
+    $q.= sprintf("<tr><td><a href='?m=user&id=%d'>%d</a></td><td><a href='?m=user&id=%d'>%s</a></td><td>%s</td><td class='%s'><a href='?m=userledger&id=%d'>%04.2f</a></td><td><a href='?m=userledger&id=%d'>Kontoauszug</a> | <a href='?m=add_payment&id=%d'>Ein/Auszahlung</a></td></tr>",
+        $d["id"], $d["id"], $d["id"], htmlentities($d["email"]), htmlentities($d["fullname"]), moneycolor($d["summe"]), $d["id"], -($d["summe"]/100), $d["id"], $d["id"]);
   }
-  echo "</table>";
-  echo "<hr><a href='?m=newuser'>Neuer User</a>";
+  $q.= "</table>";
+  $q.= "<hr><a href='?m=newuser'>Neuer User</a>";
+  return $q;
+}
+
+
+function add_payment() {
+  $user = sql("SELECT * FROM users WHERE id = ?", [$_GET["id"]], 1);
+  if (!$user) return "Bad user id";
+  if ($_POST["charge"]) {
+    $charge = floatval(str_replace(",",".",$_POST["charge"])) * 100;
+    sql("INSERT INTO ledger (user_id, product_id, charge) VALUES (?, 1, ?)", [ $_GET["id"], $charge ], true);
+    header("Location: ".BASE_URL."admin/?m=userledger&id=".intval($_GET["id"]));
+    exit;
+  }
+  return get_view("add_payment", [ "user" => $user ]);
 }
 
 function new_user() {
@@ -21,24 +37,39 @@ function new_user() {
     header("Location: ".BASE_URL."admin/?m=user&id=$newId");
     exit;
   }
-  echo "<form action='?m=newuser' method='post'>";
-  echo "<input type=email name=email> <input type=submit value='Neuen User anlegen'>";
-  echo "</form>";
+  $q.= "<form action='?m=newuser' method='post'>";
+  $q.= "<input type=email name=email> <input type=submit value='Neuen User anlegen'>";
+  $q.= "</form>";
+  return $q;
+}
+
+function transactions() {
+  $transactions = sql("SELECT l.user_id, u.fullname, l.timestamp, l.charge, p.name, p.code, l.storno FROM ledger l LEFT OUTER JOIN products p ON l.product_id=p.id LEFT OUTER JOIN users u ON u.id = l.user_id ORDER BY timestamp DESC", []);
+  return get_view("ledger_glob", [ "ledger" => $transactions ]);
 }
 
 function productlist() {
   $prods = sql("SELECT * FROM products ", []);
-  load_view("productlist", ["products" => $prods]);
+  return get_view("productlist", ["products" => $prods]);
 }
 
-echo "<p><a href='".BASE_URL."'>Home</a> | <a href='?m=userlist'>User list</a> | <a href='?m=productlist'>Products</a></p>";
+function list_scanners() {
+  $scanners = sql("SELECT * FROM scanners", []);
+  return get_view("scanners", ["scanners" => $scanners]);
+}
 
+$menuactive = $_GET["m"];;
 switch($_GET["m"]) {
-  case "userlist": userlist(); break;
-  case "user": show_registration($_GET["id"]); break;
-  case "userledger": show_ledger($_GET["id"]); break;
-  case "newuser": new_user(); break;
-  case "productlist": productlist(); break;
-  default: echo "Willkommen"; break;
+  case "userlist": $q.=userlist(); break;
+  case "user": $q.=show_registration($_GET["id"]); $menuactive="userlist"; break;
+  case "userledger": $q.=show_ledger($_GET["id"]); $menuactive="userlist"; break;
+  case "newuser": $q.=new_user(); $menuactive="userlist"; break;
+  case "transactions": $q.= transactions(); break;
+  case "productlist": $q.=productlist(); break;
+  case "add_payment": $q.=add_payment(); break;
+  case "scanners": $q.=list_scanners(); break;
+  default: $q.= "Willkommen"; break;
 }
+
+load_view("header", [ "content" => $q, "navigation" => "admin", "menuactive" => $menuactive ]);
 

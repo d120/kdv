@@ -1,4 +1,4 @@
-
+<br>
 <table border>
 <tr><th>Code</th><th>Name</th><th>Preis</th><th>Aktion</th></tr>
 <?php foreach($products as $d): ?>
