@@ -20,14 +20,31 @@ function login() {
   return get_view("login", []) . show_timestamps();
 }
 
+function get_user_debt($uid) {
+  return sql("SELECT SUM(charge) summe FROM ledger WHERE user_id = ? AND storno IS NULL", [ $uid ], 1)["summe"];
+}
+
+function add_payment($uid, $backurl) {
+  $user = sql("SELECT * FROM users WHERE id = ?", [$uid], 1);
+  if (!$user) return "Bad user id";
+  if ($_POST["charge"]) {
+    $charge = floatval(str_replace(",",".",$_POST["charge"])) * 100;
+    sql("INSERT INTO ledger (user_id, product_id, charge) VALUES (?, 1, ?)", [ $uid, $charge ], true);
+    header("Location: ".$backurl);
+    exit;
+  }
+  return get_view("add_payment", [ "user" => $user ]);
+}
+
 function show_timestamps() {
   $last_actions = sql("SELECT current_state_timeout, id FROM scanners ORDER BY current_state_timeout DESC", []);
   return get_view("istgeradejemandda", ["last_actions" => $last_actions ]);
 }
 
 function show_ledger($uid) {
+  $debt = get_user_debt($uid);
   $ledger = sql("SELECT l.timestamp, l.charge, p.name, p.code, l.storno FROM ledger l LEFT OUTER JOIN products p ON l.product_id=p.id WHERE user_id = ? ORDER BY timestamp DESC", [ $uid ]);
-  return get_view("ledger", [ "ledger" => $ledger ]);
+  return get_view("ledger", [ "ledger" => $ledger, "debt" => $debt ]);
 }
 
 function show_registration($uid) {
@@ -56,6 +73,12 @@ function show_registration($uid) {
   return $q.get_view("registration_info", [ "scanners" => $scanners,
                  "user" => $user, "barcodes" => $barcodes ]);
 }
+
+function productlist($show_edit_buttons) {
+  $prods = sql("SELECT * FROM products ", []);
+  return get_view("productlist", ["products" => $prods, "show_edit_buttons"=>$show_edit_buttons]);
+}
+
 
 
 

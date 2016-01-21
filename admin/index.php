@@ -18,18 +18,6 @@ function userlist() {
 }
 
 
-function add_payment() {
-  $user = sql("SELECT * FROM users WHERE id = ?", [$_GET["id"]], 1);
-  if (!$user) return "Bad user id";
-  if ($_POST["charge"]) {
-    $charge = floatval(str_replace(",",".",$_POST["charge"])) * 100;
-    sql("INSERT INTO ledger (user_id, product_id, charge) VALUES (?, 1, ?)", [ $_GET["id"], $charge ], true);
-    header("Location: ".BASE_URL."admin/?m=userledger&id=".intval($_GET["id"]));
-    exit;
-  }
-  return get_view("add_payment", [ "user" => $user ]);
-}
-
 function new_user() {
   if ($_POST["email"]) {
     sql("INSERT INTO users (email) VALUES(?)", [ $_POST["email"] ], true);
@@ -47,12 +35,6 @@ function transactions() {
   $transactions = sql("SELECT l.user_id, u.fullname, l.timestamp, l.charge, p.name, p.code, l.storno FROM ledger l LEFT OUTER JOIN products p ON l.product_id=p.id LEFT OUTER JOIN users u ON u.id = l.user_id ORDER BY timestamp DESC", []);
   return get_view("ledger_glob", [ "ledger" => $transactions ]);
 }
-
-function productlist() {
-  $prods = sql("SELECT * FROM products ", []);
-  return get_view("productlist", ["products" => $prods]);
-}
-
 function list_scanners() {
   $scanners = sql("SELECT * FROM scanners", []);
   return get_view("scanners", ["scanners" => $scanners]);
@@ -65,9 +47,10 @@ switch($_GET["m"]) {
   case "userledger": $q.=show_ledger($_GET["id"]); $menuactive="userlist"; break;
   case "newuser": $q.=new_user(); $menuactive="userlist"; break;
   case "transactions": $q.= transactions(); break;
-  case "productlist": $q.=productlist(); break;
-  case "add_payment": $q.=add_payment(); break;
+  case "productlist": $q.=productlist(true); break;
+  case "add_payment": $q.=add_payment(intval($_GET["id"]), BASE_URL."admin/?m=userledger&id=".intval($_GET["id"])); break;
   case "scanners": $q.=list_scanners(); break;
+  case "product": $q.="<h1>Coming soon</h1>"; $p=sql("SELECT * FROM products WHERE id=?",[$_GET["id"]],1);$q.=print_r($p,true); break;
   default: $q.= "Willkommen"; break;
 }
 

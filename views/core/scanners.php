@@ -1,5 +1,6 @@
 
-<table>
+<h2>Scanners</h2>
+<table class="table table-bordered">
 <tr><th>ID</th><th>Token</th><th>Display URL</th></tr>
 
 <?php foreach($scanners as $d): ?>

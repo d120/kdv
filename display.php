@@ -25,8 +25,7 @@ if (strtotime($scanner["current_state_timeout"]) < time()) {
   #  $q.=sprintf("<h4>%s : %04.2f</h4>", $d["name"], $d["charge"]/100);
   #}
   $q .= get_view("ledger", [ "ledger" => $ledger, "mini" => true ]);
-  $schulden_result = sql("SELECT SUM(charge) summe FROM ledger WHERE user_id = ? AND storno IS NULL", [ $scanner["current_user_id"] ]);
-  $schulden = $schulden_result[0]["summe"];
+  $schulden = get_user_debt($scanner["current_user_id"]);
   if ($schulden < 0)
     $q.=sprintf("<h2>Guthaben: %04.2f</h2>", -($schulden/100));
   else

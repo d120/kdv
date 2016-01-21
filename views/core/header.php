@@ -8,17 +8,25 @@ tr.storno td { text-decoration: line-through; color: #666; }
 </style>
 </head>
 <body>
-<div class="container">
-
 <?php if ($navigation == "main"): ?>
-  <br>
-  <?php $menu = array( [ "?m=ledger", "Kontoauszug" ] , [ "?m=registration" , "Account" ] , [ "?m=logout" , "Logout" ] ); ?>
+  <nav class="navbar navbar-inverse navbar-static-top"><div class=container>
+  <div class="navbar-header"><a class="navbar-brand" href="<?=BASE_URL?>">KDV</a></div>
+  <ul class="nav navbar-nav pull-right"><li> <a href="<?= BASE_URL ?>?m=logout">Logout</a></li></ul>
+  <p class="navbar-text pull-right">Hallo, <?=$_SESSION["user"]["fullname"]?></p>
+  </div></nav>
+  <?php $menu = array( [ "?m=ledger", "Kontoauszug" ], ["?m=add_payment", "Ein/Auszahlung" ] , ["?m=productlist", "Produktliste"]  , [ "?m=registration" , "Account" ] ); ?>
 <?php elseif ($navigation == "admin"): ?>
-  <h2>KDV Adminmodus <a href="<?= BASE_URL ?>" class="btn btn-primary pull-right">Frontend</a></h2>
+  <nav class="navbar navbar-inverse navbar-static-top"><div class=container>
+  <div class="navbar-header"><a class="navbar-brand" href="<?=BASE_URL?>admin/">KDV Admin</a></div>
+  <ul class="nav navbar-nav pull-right"><li> <a href="<?= BASE_URL ?>">Logout</a></li></ul>
+  </div></nav>
+
   <?php $menu = array(  [ "?m=userlist", "User List" ] , [ "?m=productlist" , "Products" ] , [ "?m=transactions" , "Transaktionen" ], ["?m=scanners", "Scanner" ] ); ?>
 <?php else: ?>
   <br>
 <?php endif; ?>
+
+<div class="container">
 
 
 <ul class="nav nav-tabs nav-justified">
