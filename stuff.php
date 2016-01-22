@@ -1,5 +1,9 @@
 <?php
 
+function ent($x) {
+  return htmlspecialchars($x, 0, "UTF-8");
+}
+
 function moneycolor($money) {
   if ($money == 0) return "";
   elseif ($money < 0) return "success";
@@ -17,7 +21,7 @@ function login() {
       echo "<p>Ungültige Zugangsdaten</p>";
     }
   }
-  return get_view("login", []) . show_timestamps();
+  return get_view("login", []);
 }
 
 function get_user_debt($uid) {
@@ -27,18 +31,24 @@ function get_user_debt($uid) {
 function add_payment($uid, $backurl) {
   $user = sql("SELECT * FROM users WHERE id = ?", [$uid], 1);
   if (!$user) return "Bad user id";
-  if ($_POST["charge"]) {
+  $product_id = intval($_GET["product_id"]);
+  if (!$product_id) $product_id = 1;
+  $product = sql("SELECT * FROM products WHERE id = ?", [ $product_id ], 1);
+  if ($_POST["charge"] && $_POST["product_id"] == 1) {
     $charge = floatval(str_replace(",",".",$_POST["charge"])) * 100;
-    sql("INSERT INTO ledger (user_id, product_id, charge) VALUES (?, 1, ?)", [ $uid, $charge ], true);
+  } else if ($_POST["product_id"] == $_GET["product_id"]) {
+    $charge = $product["price"];
+  }
+  if ($charge) {
+    $debt = get_user_debt($uid);
+    if ($debt + $charge > $user["debt_limit"]) {
+      return "<div class=well>Transaktion fehlgeschlagen</div>";
+    }
+    sql("INSERT INTO ledger (user_id, product_id, charge) VALUES (?, ?, ?)", [ $uid, $product["id"], $charge ], true);
     header("Location: ".$backurl);
     exit;
   }
-  return get_view("add_payment", [ "user" => $user ]);
-}
-
-function show_timestamps() {
-  $last_actions = sql("SELECT current_state_timeout, id FROM scanners ORDER BY current_state_timeout DESC", []);
-  return get_view("istgeradejemandda", ["last_actions" => $last_actions ]);
+  return get_view("add_payment", [ "user" => $user, "product" => $product ]);
 }
 
 function show_ledger($uid) {
@@ -76,7 +86,7 @@ function show_registration($uid) {
 
 function productlist($show_edit_buttons) {
   $prods = sql("SELECT * FROM products ", []);
-  return get_view("productlist", ["products" => $prods, "show_edit_buttons"=>$show_edit_buttons]);
+  return get_view("productlist", ["products" => $prods, "action_buttons"=>$show_edit_buttons]);
 }
 
 

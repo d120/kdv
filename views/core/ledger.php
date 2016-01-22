@@ -1,6 +1,6 @@
 <?php if (!$mini) : ?>
 <h2>Kontostand: 
-<span style="color: <?= ($debt>0) ? "#d00" :( ($debt < 0) ? "#0d0" : "#000") ?>"><?= sprintf("%04.2f", -($debt/100)) ?></span>
+<span style="color: <?= ($debt>0) ? "#d00" :( ($debt < 0) ? "#0b0" : "#000") ?>"><?= sprintf("%04.2f", -($debt/100)) ?></span>
 </h2>
 <?php endif; ?>
 

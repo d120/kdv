@@ -1,15 +1,13 @@
 <?php
-include "init.php";
-header("Content-Type: text/plain; charset=utf8");
 
 function show_output($output) {
   global $scanner;
-  sql("UPDATE scanners SET current_display = ?, current_display_timeout=DATE_ADD(NOW(),INTERVAL 12 SECOND) WHERE id = ?", [$output, $scanner["id"]]);
+  sql("UPDATE scanners SET current_display = ?, current_display_timeout=DATE_ADD(NOW(),INTERVAL 12 SECOND) WHERE id = ?", [$output, $scanner["id"]], true);
   echo $output;
 }
 function set_state($new_state, $user_id = false, $state_timeout = 60) {
   global $scanner;
-  sql("UPDATE scanners SET current_state = ?, current_state_timeout = DATE_ADD(NOW(), INTERVAL ? SECOND) , current_user_id = -1 WHERE id = ?",
+  sql("UPDATE scanners SET current_state = ?, current_state_timeout = DATE_ADD(NOW(), INTERVAL ? SECOND)  WHERE id = ?",
        [ $new_state, $state_timeout, $scanner["id"] ], true);
   if ($user_id !== false) sql("UPDATE scanners SET current_user_id = ? WHERE id = ?", [ $user_id, $scanner["id"] ], true);
 }
@@ -18,7 +16,7 @@ $barcode = $_POST["barcode"];
 $scanner_result = sql("SELECT * FROM scanners WHERE id = ? AND token = ?", [ $_POST["scanner"], $_POST["scanner_token"] ]);
 if (count($scanner_result) == 0) {
   header("HTTP/1.1 403 Forbidden");
-  die(json_encode([ "error" => "invalid scanner" ]));
+  die("FAIL\nInvalid scanner!");
 }
 $scanner = $scanner_result[0];
 if (strtotime($scanner["current_state_timeout"]) < time()) {
@@ -34,15 +32,16 @@ case "2992101010102":
 case ABC_REGISTER:
   if ($scanner["current_state"] == "buy") {
     set_state("register", false, 30);
-    show_output("SCAN\nScan card to register\n");
+    $user=sql("SELECT * FROM users WHERE id=?", [ $scanner["current_user_id"] ], 1);
+    show_output("SCAN\nScan card to \nregister\n".$user["fullname"]);
   } else {
     set_state("register", -1, 30);
-    show_output("SCAN\nScan card to create account\n");
+    show_output("SCAN\nScan card to \ncreate account\n");
   }
   return;
 case ABC_REMOVECARD:
   set_state("removecard", false, 30);
-  show_output("OK\nRemove card from acct\n");
+  show_output("OK\nRemove card \nfrom acct?\n");
   return;
 case ABC_STORNO:
   if ($scanner["current_state"] != "buy") { show_output("FAIL\nPlease login\n"); return; }
@@ -72,9 +71,9 @@ if (count($product_result) == 1) {
     sql("INSERT INTO ledger (user_id, product_id, charge) VALUES (?,?,?)",
         [ $scanner["current_user_id"], $product["id"], $product["price"] ], true);
 
-    show_output(sprintf("OK\nRecorded sale %04.2f\n", $product["price"]/100));
+    show_output(sprintf("OK\nRecorded sale \n%04.2f\n%s\n", $product["price"]/100, $product["name"]));
   } else {
-    show_output(sprintf("FAIL\nPlease login\n%04.2f  %s", $product["price"]/100, $product["name"]));
+    show_output(sprintf("FAIL\nPlease login\n%04.2f\n%s", $product["price"]/100, $product["name"]));
   }
   return;
 }
@@ -83,7 +82,7 @@ $user_result = sql("SELECT u.* FROM user_barcodes b INNER JOIN users u ON b.user
 if (count($user_result) == 1) {
   $user = $user_result[0];
   set_state("buy", $user["id"]);
-  show_output("SCAN\nWelcome ".$user["fullname"]."!\n");
+  show_output("SCAN\nWillkommen\n".$user["fullname"]."!\n");
   return;
 }
 
@@ -98,6 +97,6 @@ if ($scanner["current_state"] == "register") {
   return;
 }
 
-show_output("FAIL\nInvalid ".$barcode);
+show_output("FAIL\n! INVALID ! \n".$barcode);
 
 

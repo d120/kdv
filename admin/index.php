@@ -30,7 +30,9 @@ function new_user() {
   $q.= "</form>";
   return $q;
 }
-
+function new_product() {
+  return get_view("new_product", []);
+}
 function transactions() {
   $transactions = sql("SELECT l.user_id, u.fullname, l.timestamp, l.charge, p.name, p.code, l.storno FROM ledger l LEFT OUTER JOIN products p ON l.product_id=p.id LEFT OUTER JOIN users u ON u.id = l.user_id ORDER BY timestamp DESC", []);
   return get_view("ledger_glob", [ "ledger" => $transactions ]);
@@ -46,8 +48,9 @@ switch($_GET["m"]) {
   case "user": $q.=show_registration($_GET["id"]); $menuactive="userlist"; break;
   case "userledger": $q.=show_ledger($_GET["id"]); $menuactive="userlist"; break;
   case "newuser": $q.=new_user(); $menuactive="userlist"; break;
+  case "newproduct": $q.=new_product(); $menuactive="productlist"; break;
   case "transactions": $q.= transactions(); break;
-  case "productlist": $q.=productlist(true); break;
+  case "productlist": $q.=productlist([[ "Bearbeiten", "?m=product&id=%d" ]]); break;
   case "add_payment": $q.=add_payment(intval($_GET["id"]), BASE_URL."admin/?m=userledger&id=".intval($_GET["id"])); break;
   case "scanners": $q.=list_scanners(); break;
   case "product": $q.="<h1>Coming soon</h1>"; $p=sql("SELECT * FROM products WHERE id=?",[$_GET["id"]],1);$q.=print_r($p,true); break;

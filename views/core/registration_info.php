@@ -1,14 +1,26 @@
 
 <h2>Account (<?= $user["email"] ?>)</h2>
 
-<form action="<?= htmlspecialchars($action) ?>" method="post">
-<p>Name: <input type="text" name="fullname" value="<?=$user["fullname"]?>"></p>
-<p>IBAN: <input type="text" name="iban" value="<?=$user["iban"]?>"></p>
+<form action="<?= htmlspecialchars($action) ?>" method="post" class="form-horizontal">
+<div class="form-group">
+<label for="inputName" class="col-sm-2 control-label">Name: </label>
+<div class="col-sm-6"><input type="text" name="fullname" value="<?=ent($user["fullname"])?>" class="form-control" id="inputName"></div>
+</div>
+
+<div class="form-group">
+<label for="inputLimit" class="col-sm-2 control-label">Limit: </label>
+<div class="col-sm-4"><input type="text" disabled value="<?=$user["max_debt"]/100?>" class="form-control" id="inputLimit" size=5></div>
+</div>
+
 <p><input type="submit" name="update" value="Speichern"></p>
 </form>
 
-<form action="<?= $action ?>" method="post">
-<p>Passwort ändern: <input type="password" name="password"></p>
+<form action="<?= $action ?>" method="post" class="form-horizontal">
+<div class="form-group">
+<label for="inputPassword3" class="col-sm-2 control-label">Passwort ändern: </label>
+<div class="col-sm-6"><input type="password" name="password" class="form-control" id="inputPassword3"></div>
+</div>
+
 <p><input type="submit" name="change_pw" value=" OK "></p>
 </form>
 
@@ -16,7 +28,7 @@
 <table>
 <tr><th>Barcode</th><th>Aktion</th></tr>
 <?php foreach($barcodes as $d): ?>
-<tr><td><?= $d["code"]?></td><td>
+<tr><td><?= ent($d["code"])?></td><td>
 <form action="<?= $action ?>" method="post"><input type="hidden" name="remove_barcode" value="<?= $d["id"] ?>"><input type="submit" value="Löschen"></form>
 </td></tr>
 <?php endforeach; ?>

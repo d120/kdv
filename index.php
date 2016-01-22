@@ -28,11 +28,13 @@ switch($_GET["m"]) {
     $q.= show_registration($uid);
     break;
   case "add_payment":
-    $q.=add_payment($_SESSION["user"]["id"], BASE_URL."?m=ledger"); break;
+    $q.=add_payment($_SESSION["user"]["id"], BASE_URL."?m=ledger");
+    break;
   case "productlist":
-    $q.=productlist(false); break;
+    $q.=productlist([  [ "Kaufen", "?m=add_payment&product_id=%d" ]  ]);
+    break;
   default:
-    $q.= show_timestamps();
+    $q.= "<h2>Moin moin</h2>";
     break;
 }
 

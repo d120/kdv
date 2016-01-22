@@ -42,6 +42,7 @@ tr.storno td { text-decoration: line-through; color: #666; }
 <?php if ($navigation): ?>
 <footer><div class="container">
 <a href="<?= BASE_URL ?>admin/">Admin</a>
+&bull;  <a href="https://git.fachschaft.informatik.tu-darmstadt.de/mweller/mwkdv">Open Source</a>
 </div></footer>
 <?php endif; ?>
 </body>
