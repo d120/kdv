@@ -1,11 +1,13 @@
 <!doctype html>
 <head>
-<link rel="stylesheet" href="<?= BASE_URL ?>bootstrap.min.css">
-<script src="<?= BASE_URL ?>jquery.min.js"></script>
-<meta name="viewport" content="width=device-width">
-<style> footer { background: #eee; padding: 10px 0; margin: 50px 0 0; } 
-tr.storno td { text-decoration: line-through; color: #666; }
-</style>
+  <link rel="stylesheet" href="<?= BASE_URL ?>bootstrap.min.css">
+  <link rel="shortcut icon" href="<?= BASE_URL ?>favicon.ico">
+  <script src="<?= BASE_URL ?>jquery.min.js"></script>
+  <meta name="viewport" content="width=device-width">
+  <style> footer { background: #eee; padding: 10px 0; margin: 50px 0 0; } 
+  tr.storno td { text-decoration: line-through; color: #666; }
+  </style>
+  <title><?= ent($title) ?></title>
 </head>
 <body>
 <?php if ($navigation == "main"): ?>
