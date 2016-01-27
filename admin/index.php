@@ -41,8 +41,20 @@ function list_scanners() {
   $scanners = sql("SELECT * FROM scanners", []);
   return get_view("scanners", ["scanners" => $scanners]);
 }
+function edit_product() {
+  $p=sql("SELECT * FROM products WHERE id=?",[$_GET["id"]],1);
+  if ($_POST["bestand"]) {
+    sql("INSERT INTO ledger (product_id, product_amount, user_id, charge, timestamp) VALUES (?, ?, 1, ?, NOW())",
+      [ $p["id"], -intval($_POST["bestand"]), (-intval($_POST["bestand"])) * $p["price"] ], true);
+  }
+  $ledger = sql("SELECT * FROM ledger WHERE product_id = ? AND storno IS NULL ORDER BY timestamp ASC", [ $p["id"] ]);
 
-$menuactive = $_GET["m"];;
+  return get_view("edit_product", ["product"=>$p, "bestand" => $ledger]);
+
+}
+
+
+$menuactive = $_GET["m"];
 switch($_GET["m"]) {
   case "userlist": $q.=userlist(); break;
   case "user": $q.=show_registration($_GET["id"]); $menuactive="userlist"; break;
@@ -50,10 +62,10 @@ switch($_GET["m"]) {
   case "newuser": $q.=new_user(); $menuactive="userlist"; break;
   case "newproduct": $q.=new_product(); $menuactive="productlist"; break;
   case "transactions": $q.= transactions(); break;
-  case "productlist": $q.=productlist([[ "Bearbeiten", "?m=product&id=%d" ]]); break;
+  case "productlist": $q.=productlist([[ "Bearbeiten", "?m=product&id=%d" ] ]); break;
   case "add_payment": $q.=add_payment(intval($_GET["id"]), BASE_URL."admin/?m=userledger&id=".intval($_GET["id"])); break;
   case "scanners": $q.=list_scanners(); break;
-  case "product": $q.="<h1>Coming soon</h1>"; $p=sql("SELECT * FROM products WHERE id=?",[$_GET["id"]],1);$q.=print_r($p,true); break;
+  case "product": $q.=edit_product(); $menuactive="productlist"; break;
   default: $q.= "Willkommen"; break;
 }
 

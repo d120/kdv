@@ -85,7 +85,7 @@ function show_registration($uid) {
 }
 
 function productlist($show_edit_buttons) {
-  $prods = sql("SELECT * FROM products ", []);
+  $prods = sql("SELECT *, -(select sum(product_amount) from ledger where product_id=p.id and storno is null) bestand FROM products p ", []);
   return get_view("productlist", ["products" => $prods, "action_buttons"=>$show_edit_buttons]);
 }
 
