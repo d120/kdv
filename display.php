@@ -1,39 +1,28 @@
 <?php
 include "init.php";
 include "stuff.php";
+$url = json_encode("api.php/display/?scanner=$_GET[scanner]&token=$_GET[token]&");
 
-$q="";
-$q.= '<meta http-equiv="refresh" content="3">';
-
-$scanner = sql("SELECT *, TIMESTAMPDIFF(SECOND,NOW(),current_state_timeout) timeout FROM scanners WHERE id = ?", [ $_GET["scanner"] ], 1);
-if (!$scanner || md5($scanner["id"].$scanner["token"]) != $_GET["token"]) die("Invalid scanner id");
-
-if (strtotime($scanner["current_display_timeout"]) > time()) {
-  $parts = explode("\n", $scanner["current_display"]);
-  $bg = $parts[0] == "OK" ? "#aaffaa" : ($parts[0] == "SCAN" ? "#aaaaff" : "#ffaaaa");
-  $q.= "<pre style='padding:10px; background: $bg;'>".$scanner["current_display"]."</pre>";
-}
-
-if (strtotime($scanner["current_state_timeout"]) < time()) {
-  $q.= "<h2>Herzlich willkommen!</h2><h2>".date("H:i:s")."</h2>";
-} else {
-
-  $user = sql("SELECT * FROM users WHERE id = ?", [ $scanner["current_user_id"] ], 1);
-  $q.= "<h2>Hallo ".$user["fullname"]."</h2>";
-  $ledger = sql("SELECT * FROM ledger l LEFT OUTER JOIN products p ON l.product_id=p.id WHERE user_id = ? AND storno IS NULL ORDER BY timestamp DESC LIMIT 3", [ $scanner["current_user_id"] ]);
-  #foreach($ledger as $d) {
-  #  $q.=sprintf("<h4>%s : %04.2f</h4>", $d["name"], $d["charge"]/100);
-  #}
-  $q .= get_view("ledger", [ "ledger" => $ledger, "mini" => true ]);
-  $schulden = get_user_debt($scanner["current_user_id"]);
-  if ($schulden < 0)
-    $q.=sprintf("<h2>Guthaben: %04.2f</h2>", -($schulden/100));
-  else
-    $q.=sprintf("<h2>Schulden: %04.2f</h2>", $schulden/100);
-  
-  $q.= "<p class=text-muted>State: $scanner[current_state]  |  Timeout: $scanner[timeout] sec</p>";
-
-}
-
+$q.=<<<scr
+<script>
+var url = $url;
+var t1=0;
+setInterval(function() {
+  $.get(url + "t1=" + t1  , function(x) {
+    if (x.html) {
+      t1=x.t1;
+      $("#cont").html(x.html);
+    }
+  }, "json");
+}, 2000);
+function fmt(x) { if (x<10) return "0"+x; else return x; }
+setInterval(function() {
+  var d = new Date();
+  $("#time").html(fmt(d.getHours())+":"+fmt(d.getMinutes())+":"+fmt(d.getSeconds()));
+}, 1000);
+</script>
+<div id="cont"></div>
+<div id="time" style="text-align:center;font-size:20pt"></div>
+scr;
 load_view("header",[ "content" => $q ]);
 

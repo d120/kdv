@@ -10,6 +10,10 @@ function moneycolor($money) {
   else return "danger";
 }
 
+function format_display_output($ok, $timeout, $output) {
+  return str_pad("$ok $timeout ", 16, "X") . "\n" . $output;
+}
+
 function login() {
   if ($_POST["email"]) {
     $user = sql("SELECT * FROM users WHERE email = ?", [ $_POST["email"] ], 1);
@@ -65,7 +69,7 @@ function show_registration($uid) {
     sql("DELETE FROM user_barcodes WHERE id = ? AND user_id = ?", [ intval($_POST["remove_barcode"]), $uid ], true);
   }
   if ($_POST["add_barcode"]) {
-    sql("UPDATE scanners SET current_state='register', current_state_timeout=DATE_ADD(NOW(),interval 1 MINUTE), current_user_id=? WHERE id = ?", [ $uid, intval($_POST["scanner_id"]) ], true);
+    sql("UPDATE scanners SET current_state='register', current_state_timeout=DATE_ADD(NOW(),interval 1 MINUTE), current_user_id=?,current_display=?,current_display_timeout=DATE_ADD(NOW(),interval 1 MINUTE) WHERE id = ?", [ $uid, format_display_output("SCAN", 60, "\nScanne jetzt \ndeine neue Karte"), intval($_POST["scanner_id"]) ], true);
     return get_view("add_barcode_countdown", [ "scanner" => intval($_POST["scanner_id"]) ]);
   }
   if ($_POST["check_register_done"]) {
