@@ -14,6 +14,30 @@ function format_display_output($ok, $timeout, $output) {
   return str_pad("$ok $timeout ", 16, "X") . "\n" . $output;
 }
 
+function buy_product($user_id, $product) {
+  $debt = sql("SELECT SUM(charge) summe FROM ledger WHERE user_id = ? AND storno IS NULL", [ $user_id ], 1)["summe"];
+  $max_debt = sql("SELECT debt_limit FROM users WHERE id = ?", [ $user_id ], 1)["debt_limit"];
+  if ($debt + $product["price"] > $max_debt) {
+    return "transaction_failed";
+  }
+  sql("INSERT INTO ledger (user_id, product_id, charge) VALUES (?,?,?)",
+      [ $user_id, $product["id"], $product["price"] ], true);
+  return true;
+}
+
+function basiclogin() {
+  if ($_SERVER["PHP_AUTH_USER"]) {
+    $user = sql("SELECT * FROM users WHERE email = ?", [ $_SERVER["PHP_AUTH_USER"] ], 1);
+    if ($user && password_verify($_SERVER["PHP_AUTH_PW"], $user["password_hash"])) {
+      return $user;
+    }
+  }
+  header('WWW-Authenticate: Basic realm="KDV - Email and Password"');
+  header('HTTP/1.0 401 Unauthorized');
+  echo json_encode(['error' => 'unauthorized']);
+  exit;
+}
+
 function login() {
   if ($_POST["email"]) {
     $user = sql("SELECT * FROM users WHERE email = ?", [ $_POST["email"] ], 1);
@@ -61,7 +85,7 @@ function show_ledger($uid) {
   return get_view("ledger", [ "ledger" => $ledger, "debt" => $debt ]);
 }
 
-function show_registration($uid) {
+function show_registration($uid, $admin=false) {
   $q = "";
   $scanners = sql("SELECT * FROM scanners ORDER BY current_state_timeout DESC", []);
   $count = sql("SELECT COUNT(*) c FROM user_barcodes WHERE user_id = ?", [ $uid ], 1)["c"];
@@ -77,14 +101,15 @@ function show_registration($uid) {
     die("no");
   }
   if ($_POST["update"]) {
-    sql("UPDATE users SET fullname=?,iban=? WHERE id=?", [ $_POST["fullname"], $_POST["iban"], $uid ], true);
+    sql("UPDATE users SET fullname=? WHERE id=?", [ $_POST["fullname"], $uid ], true);
+    if($admin) sql("UPDATE users SET email=?,debt_limit=? WHERE id=?", [ $_POST["email"], $_POST["debt_limit"]*100, $uid ], true);
   }
   if ($_POST["password"]) {
     sql("UPDATE users SET password_hash=? WHERE id=?", [ password_hash($_POST["password"], PASSWORD_DEFAULT), $uid ], true);
   }
   $user = sql("SELECT * FROM users WHERE id = ?", [ $uid ], 1);
   $barcodes = sql("SELECT * FROM user_barcodes  WHERE user_id = ? ", [ $uid ]);
-  return $q.get_view("registration_info", [ "scanners" => $scanners,
+  return $q.get_view("registration_info", [ "scanners" => $scanners, "admin"=>$admin,
                  "user" => $user, "barcodes" => $barcodes ]);
 }
 

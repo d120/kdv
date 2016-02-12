@@ -74,6 +74,56 @@ case "/display/":
   }
   echo json_encode(["html" => $q, "t1" => time() ]);
   break;
+
+case "/me/display/":
+  $user = basiclogin();
+  header("Content-Type: text/html");
+  $q.= "<h2>Hallo ".$user["fullname"]."</h2>";
+  $ledger = sql("SELECT * FROM ledger l LEFT OUTER JOIN products p ON l.product_id=p.id
+    WHERE user_id = ? AND storno IS NULL ORDER BY timestamp DESC LIMIT 3",
+    [ $user["id"] ]);
+  $q.= get_view("ledger", [ "ledger" => $ledger, "mini" => true ]);
+  $schulden = get_user_debt($scanner["current_user_id"]);
+  if ($schulden < 0)
+    $q.= sprintf("<h2>Guthaben: %04.2f</h2>", -($schulden/100));
+  else
+    $q.= sprintf("<h2>Schulden: %04.2f</h2>", $schulden/100);
+  echo $q;
+  break;
+
+case "/me/ledger/":
+  $user = basiclogin();
+  header("Content-Type: text/html");
+  $ledger = sql("SELECT * FROM ledger l LEFT OUTER JOIN products p ON l.product_id=p.id
+    WHERE user_id = ? AND storno IS NULL ORDER BY timestamp DESC ",
+    [ $user["id"] ]);
+
+  $schulden = get_user_debt($scanner["current_user_id"]);
+  echo json_encode(["success" => true, "ledger" => $ledger, "debt" => $schulden]);
+  break;
+
+case "/productlist/":
+  $user = basiclogin();
+  header("Content-Type: application/json; charset=utf-8");
+  $products = sql("SELECT * FROM products WHERE disabled_at IS NULL", []);
+  echo json_encode($products);
+  break;
+
+case "/me/buy/":
+  $user = basiclogin();
+  $product_result = sql("SELECT * FROM products WHERE code = ? AND disabled_at IS NULL", [ $_POST["barcode"] ]);
+  if (count($product_result) == 1) {
+    $res = buy_product($user["id"], $product_result[0]);
+    if ($res === true) {
+      echo json_encode(["success" => true]);
+    } else {
+      echo json_encode(["error" => $res ]);
+    }
+  } else {
+    echo json_encode(["error" => "unknown_product"]);
+  }
+  break;
+
 default:
   echo "FAIL\n404\n";
   break;

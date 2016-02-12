@@ -103,7 +103,7 @@ if (count($user_result) == 1) {
 
 if ($scanner["current_state"] == "register") {
   if ($scanner["current_user_id"] == -1) {
-    sql("INSERT INTO users (email, fullname, debt_limit) VALUES ('', 'Anonym', 0) ", [], true);
+    sql("INSERT INTO users (email, fullname, debt_limit) VALUES ('', 'Anonym', ?) ", [DEFAULT_DEBT_LIMIT_ANONYMOUS], true);
     $scanner["current_user_id"] = sql("SELECT last_insert_id() id", [], 1)["id"];
   }
   sql("INSERT INTO user_barcodes (user_id, code) VALUES (?, ?)", [ $scanner["current_user_id"], $barcode], true);

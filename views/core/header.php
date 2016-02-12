@@ -1,12 +1,10 @@
 <!doctype html>
 <head>
-  <link rel="stylesheet" href="<?= BASE_URL ?>bootstrap.min.css">
+  <link rel="stylesheet" href="<?= BASE_URL ?>css/bootstrap.min.css">
+  <link rel="stylesheet" href="<?= BASE_URL ?>css/style.css">
   <link rel="shortcut icon" href="<?= BASE_URL ?>favicon.ico">
   <script src="<?= BASE_URL ?>jquery.min.js"></script>
   <meta name="viewport" content="width=device-width">
-  <style> footer { background: #eee; padding: 10px 0; margin: 50px 0 0; } 
-  tr.storno td { text-decoration: line-through; color: #666; }
-  </style>
   <title><?= ent($title) ?></title>
 </head>
 <body>
@@ -23,7 +21,7 @@
   <ul class="nav navbar-nav pull-right"><li> <a href="<?= BASE_URL ?>">Logout</a></li></ul>
   </div></nav>
 
-  <?php $menu = array(  [ "?m=userlist", "User List" ] , [ "?m=productlist" , "Products" ] , [ "?m=transactions" , "Transaktionen" ], ["?m=scanners", "Scanner" ] ); ?>
+  <?php $menu = array(  [ "?m=productlist" , "Products" ] , [ "?m=userlist", "User List" ] , [ "?m=transactions" , "Transaktionen" ], ["?m=scanners", "Scanner" ] ); ?>
 <?php else: ?>
   <br>
 <?php endif; ?>

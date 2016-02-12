@@ -19,7 +19,7 @@
 
 </div></div>
 
-<p><input type="submit" class="btn btn-default" value=" Buchen "></p>
+<p><button type="submit" class="btn btn-success"><span class="glyphicon glyphicon-ok"></span>&nbsp;  Buchen</button></p>
 
 </form>
 

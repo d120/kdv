@@ -1,6 +1,6 @@
 <h2>Kontoauszug</h2>
-  <table border='1'>
-  <tr><th>Datum</th><th>User Id</th><th>Produktname</th><th>Price</th></tr>
+  <table class="table table-bordered table-striped">
+  <thead><tr><th>Datum</th><th>User Id</th><th>Produktname</th><th>Price</th></tr></thead>
 <?php  foreach($ledger as $d) { ?>
 <?php 
 $cls="";

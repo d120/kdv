@@ -1,5 +1,5 @@
 <br>
-<table class="table table-striped">
+<table class="table table-hover table-bordered">
 <thead>
 <tr><th>Code</th><th>Name</th><th>Preis</th><th>Bestand</th><th>Aktion</th></tr>
 </thead>
