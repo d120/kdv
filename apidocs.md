@@ -54,3 +54,31 @@ Returns JSON:
 * `{ "error" => "transaction_failed" }` if user is broke
 
 
+### Deposit Money
+
+    POST /api.php/me/deposit/
+    Authentication: Basic ZW1haWw6cGFzc3dvcmQ=
+
+    amount=42.00
+
+Returns JSON:
+
+* `{ "success" => true }` on success
+* `{ "error" => "invalid_amount" }` otherwise
+
+
+### Get Ad
+
+    GET /api.php/ad/
+
+
+### Set Ad
+
+    PUT /api.php/ad/
+    Content-Type: text/plain
+
+    Hier koennte
+    Ihre Werbung
+      stehen
+
+

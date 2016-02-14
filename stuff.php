@@ -20,7 +20,7 @@ function buy_product($user_id, $product) {
   if ($debt + $product["price"] > $max_debt) {
     return "transaction_failed";
   }
-  sql("INSERT INTO ledger (user_id, product_id, charge) VALUES (?,?,?)",
+  sql("INSERT INTO ledger (user_id, product_id, charge, product_amount) VALUES (?,?,?, 1)",
       [ $user_id, $product["id"], $product["price"] ], true);
   return true;
 }
@@ -34,6 +34,7 @@ function basiclogin() {
   }
   header('WWW-Authenticate: Basic realm="KDV - Email and Password"');
   header('HTTP/1.0 401 Unauthorized');
+  header("Content-Type: application/json; charset=utf-8");
   echo json_encode(['error' => 'unauthorized']);
   exit;
 }
@@ -63,16 +64,15 @@ function add_payment($uid, $backurl) {
   if (!$product_id) $product_id = 1;
   $product = sql("SELECT * FROM products WHERE id = ?", [ $product_id ], 1);
   if ($_POST["charge"] && $_POST["product_id"] == 1) {
-    $charge = floatval(str_replace(",",".",$_POST["charge"])) * 100;
-  } else if ($_POST["product_id"] == $_GET["product_id"]) {
-    $charge = $product["price"];
+    $product["price"] = floatval(str_replace(",",".",$_POST["charge"])) * 100;
+    if ($product["price"] <= 0) return "<div class=well>Ungültiger Betrag</div>";
+    if ($_POST["what"] == "deposit") $product["price"] = -1 * $product["price"];
   }
-  if ($charge) {
-    $debt = get_user_debt($uid);
-    if ($debt + $charge > $user["debt_limit"]) {
-      return "<div class=well>Transaktion fehlgeschlagen</div>";
+  if (count($_POST) && $product["price"]) {
+    $ok = buy_product($user["id"], $product);
+    if ($ok !== true) {
+      return "<div class=well>$ok</div>";
     }
-    sql("INSERT INTO ledger (user_id, product_id, charge) VALUES (?, ?, ?)", [ $uid, $product["id"], $charge ], true);
     header("Location: ".$backurl);
     exit;
   }

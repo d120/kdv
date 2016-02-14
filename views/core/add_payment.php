@@ -8,18 +8,36 @@
   <span class="input-group-addon" id="basic-addon2">Euro</span>
 </div>
 
-<?php if(!$product["price"]){?>
-<p class="help-block">Negativer Betrag: Einzahlung in die Kasse<br> Positiver Betrag: Auszahlung / Produktkauf</p>
-<?php }?>
 </div>
 
 <div class="col-sm-5">
-<label for="iprodukt">Produkt:</label> <input type="text" id="iprodukt" disabled value="<?= ent($product["name"]) ?>" class="form-control"></p>
+<label for="iprodukt">Produkt:</label> 
+
+<?php if($product["price"]){?>
+<input type="text" id="iprodukt" disabled value="<?= ent($product["name"]) ?>" class="form-control"></p>
+<?php }else{ ?><br>
+<button type="button" class="btn btn-default" data-transaction="deposit">Einzahlung</button>
+<button type="button" class="btn btn-default" data-transaction="buy">Auszahlung / Kauf</button>
+<input type="hidden" value="" name="what" id="tr">
+<script>
+var myBtn = $("button[data-transaction]");
+myBtn.click(function() {
+  myBtn.attr("class", "btn btn-default");
+  this.className ="btn btn-primary";
+  $("#tr").val(this.getAttribute("data-transaction"));
+  $("button[type=submit]").attr("disabled", false);
+});
+</script>
+
+<?php }?>
+
 <input type="hidden" name="product_id" value="<?= ent($product["id"]) ?>">
 
 </div></div>
-
-<p><button type="submit" class="btn btn-success"><span class="glyphicon glyphicon-ok"></span>&nbsp;  Buchen</button></p>
+<br>
+<p><button <?=$product["price"]?"":"disabled"?> type="submit" class="btn btn-success"><span class="glyphicon glyphicon-ok"></span>&nbsp;  Buchen</button>
+<button type="button" class="btn btn-default" onclick="history.back()">Abbrechen</button>
+</p>
 
 </form>
 

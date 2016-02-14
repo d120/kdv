@@ -1,0 +1,6 @@
+footer { background: #eee; padding: 10px 0; margin: 50px 0 0; } 
+tr.storno td { text-decoration: line-through; color: #666; }
+.table-lined td { border-bottom: 1px solid #ddd!important; }
+.table-lined th { border-bottom: 2px solid #ccc!important; border-top: 1px solid #ccc!important; }
+
+
