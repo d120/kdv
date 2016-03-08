@@ -50,8 +50,8 @@ Returns JSON:
 Returns JSON:
 
 * `{ "success" => true }` on success
-* `{ "error" => "unknown_product" }` on unknown product
-* `{ "error" => "transaction_failed" }` if user is broke
+* `{ "success" => false, "error" => "unknown_product" }` on unknown product
+* `{ "success" => false, "error" => "transaction_failed" }` if user is broke
 
 
 ### Deposit Money
@@ -64,7 +64,7 @@ Returns JSON:
 Returns JSON:
 
 * `{ "success" => true }` on success
-* `{ "error" => "invalid_amount" }` otherwise
+* `{ "success" => false, "error" => "invalid_amount" }` otherwise
 
 
 ### Get Ad

@@ -39,7 +39,7 @@ case "/textdisplay/":
   else {
     $secs = date("s") % 30;
     echo "XX 10 XXXXXXXXXX\n".date("D, d.m H:i")."\n";
-    if ($secs < 10)  echo file_get_contents("ad"); //echo "* Hier koennte *\n* Ihre Werbung *\n*    stehen    *";
+    if ($secs < 10)  echo (filemtime("ad")>time()-1200) ? file_get_contents("ad") : "* Hier koennte *\n* Ihre Werbung *\n*    stehen    *";
     else if ($secs < 20)  echo "    \n   WILLKOMMEN\n";
     else if ($secs < 30)  echo "Bitte Karte oder\nFeedbackbogen\nscannen";
   }
@@ -47,6 +47,7 @@ case "/textdisplay/":
 
 case "/ad/":
   if ($_SERVER["REQUEST_METHOD"] == "PUT") {
+    sleep(1);
     $li = explode("\n", file_get_contents("php://input"));
     $out = "";
     for($i=0;$i<3;$i++){
@@ -54,6 +55,9 @@ case "/ad/":
         header("HTTP/1.1 400 Bad Request"); echo "Invalid line $i\n"; return;
       }
       $out .= "*".str_pad($li[$i], 14)."*\n";
+    }
+    if ($out == file_get_contents("ad")) {
+      header("HTTP/1.1 304 Not Modified"); exit;
     }
     file_put_contents("ad", $out);
     header("HTTP/1.1 201 Created");
@@ -145,10 +149,10 @@ case "/me/buy/":
     if ($res === true) {
       echo json_encode(["success" => true]);
     } else {
-      echo json_encode(["error" => $res ]);
+      echo json_encode(["success" => false, "error" => $res ]);
     }
   } else {
-    echo json_encode(["error" => "unknown_product"]);
+    echo json_encode(["success" => false, "error" => "unknown_product"]);
   }
   break;
 
@@ -156,18 +160,18 @@ case "/me/deposit/":
   $user = basiclogin();
   header("Content-Type: application/json; charset=utf-8");
   if (!isset($_POST["price"]) || strlen($_POST["price"]) < 1) {
-    echo json_encode(["error" => "missing_parameter"]);
+    echo json_encode(["success" => false, "error" => "missing_parameter"]);
     return;
   }
   $product = sql("SELECT * FROM producs WHERE id = 1", [], 1);
   $product["price"] = - intval($_GET["amount"] / 100);
   if ($product["price"] <= 0 || $product["price"] >= 5000) {
-    echo json_encode(["error" => "invalid_amount"]);
+    echo json_encode(["success" => false, "error" => "invalid_amount"]);
     return;
   }
   $res = buy_product($user["id"], $product);
   if ($res === true) echo json_encode(["success" => true]);
-  else echo json_encode(["error" => $res ]);
+  else echo json_encode(["success" => false, "error" => $res ]);
   break;
 
 default:
