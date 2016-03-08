@@ -82,7 +82,7 @@ if (count($product_result) == 1) {
       show_output("FAIL", 30, user_header()."\nTransaktion \nfehlgeschlagen\n");
       set_state("buy", false, 30); return;
     }
-    sql("INSERT INTO ledger (user_id, product_id, charge) VALUES (?,?,?)",
+    sql("INSERT INTO ledger (user_id, product_id, charge, product_amount) VALUES (?,?,?, 1)",
         [ $scanner["current_user_id"], $product["id"], $product["price"] ], true);
 
     show_output("OK", 30, sprintf(user_header()."\nRecorded sale \n%04.2f\n%s\n", $product["price"]/100, $product["name"]));
