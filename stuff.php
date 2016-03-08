@@ -16,12 +16,15 @@ function format_display_output($ok, $timeout, $output) {
 
 function buy_product($user_id, $product) {
   $debt = sql("SELECT SUM(charge) summe FROM ledger WHERE user_id = ? AND storno IS NULL", [ $user_id ], 1)["summe"];
-  $max_debt = sql("SELECT debt_limit FROM users WHERE id = ?", [ $user_id ], 1)["debt_limit"];
+  $user = sql("SELECT debt_limit FROM users WHERE id = ?", [ $user_id ], 1);
+  $max_debt = $user["debt_limit"];
   if ($debt + $product["price"] > $max_debt) {
     return "transaction_failed";
   }
   sql("INSERT INTO ledger (user_id, product_id, charge, product_amount) VALUES (?,?,?, 1)",
       [ $user_id, $product["id"], $product["price"] ], true);
+  if ($user["notification_email"] == 1)
+    mail($user["email"], "[kdv] recorded sale worth $product[price]", "Guthaben/Schulden vorher: $debt\n\nProdukt: $product[name]\nPreis: $product[price]\n\nDatum/Uhrzeit: ".date("r"));
   return true;
 }
 
@@ -114,8 +117,35 @@ function show_registration($uid, $admin=false) {
 }
 
 function productlist($show_edit_buttons) {
-  $prods = sql("SELECT *, -(select sum(product_amount) from ledger where product_id=p.id and storno is null) bestand FROM products p ", []);
-  return get_view("productlist", ["products" => $prods, "action_buttons"=>$show_edit_buttons]);
+  $prods = sql("SELECT *, -(select sum(product_amount) from ledger where product_id=p.id and storno is null) bestand FROM products p ORDER BY category,name ", []);
+  if ($_GET["format"]) {
+    if ($_GET["format"] == "csv") {
+      header("Content-Type: text/plain; charset=utf8");
+      foreach($prods as $r) {
+        foreach($r as $c) echo "$c\t";
+        echo "\n";
+      }
+      exit;
+    }
+    $tex = get_view("barcode.tex", [ "products" => $prods ]);
+    if ($_GET["format"] == "pdf") {
+      unlink("./data/tmp.tex"); unlink("./data/tmp.pdf");
+      file_put_contents("./data/tmp.tex", $tex);
+      $out = `cd data; pdflatex tmp.tex`;
+      if (file_exists("data/tmp.pdf")) {
+        header("Content-Type: application/pdf");
+        readfile("data/tmp.pdf");
+      }else {
+        echo "<pre style='color:red'>$out</pre>";
+      }
+    } else {
+      header("Content-Type: text/plain; charset=utf8");
+      echo $tex;
+    }
+    exit;
+  } else {
+    return get_view("productlist", ["products" => $prods, "action_buttons"=>$show_edit_buttons]);
+  }
 }
 
 
