@@ -69,5 +69,5 @@ switch($_GET["m"]) {
   default: $q.= "<br><p class=text-muted>WHERE DO YOU WANT TO GO TODAY?™</p>"; break;
 }
 
-load_view("header", [ "content" => $q, "navigation" => "admin", "menuactive" => $menuactive ]);
+load_view("header", [ "content" => $q, "navigation" => "admin", "menuactive" => $menuactive, "displayname" => $_SERVER["AUTHENTICATE_DISPLAYNAME"] ]);
 

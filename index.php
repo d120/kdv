@@ -34,7 +34,7 @@ switch($_GET["m"]) {
     $q.=productlist([  [ "Kaufen", "?m=add_payment&product_id=%d" ]  ]);
     break;
   default:
-    $q.= "<h2>Moin moin</h2>";
+    $q.= "<h2>Moin moin, ".ent($_SESSION["user"]["fullname"])."</h2>";
     break;
 }
 
