@@ -159,13 +159,13 @@ case "/me/buy/":
 case "/me/deposit/":
   $user = basiclogin();
   header("Content-Type: application/json; charset=utf-8");
-  if (!isset($_POST["price"]) || strlen($_POST["price"]) < 1) {
+  if (!isset($_POST["amount"]) || strlen($_POST["amount"]) < 1) {
     echo json_encode(["success" => false, "error" => "missing_parameter"]);
     return;
   }
-  $product = sql("SELECT * FROM producs WHERE id = 1", [], 1);
-  $product["price"] = - intval($_GET["amount"] / 100);
-  if ($product["price"] <= 0 || $product["price"] >= 5000) {
+  $product = sql("SELECT * FROM products WHERE id = 1", [], 1);
+  $product["price"] = - intval($_POST["amount"] * 100);
+  if ($product["price"] <= -5000 || $product["price"] >= 0) {
     echo json_encode(["success" => false, "error" => "invalid_amount"]);
     return;
   }
