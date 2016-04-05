@@ -6,8 +6,10 @@ A client application authenticates via the HTTP Authentication request header (B
 
 Two kinds of credentials can be used:
 
-* username = $the_email_address, password = $the_password
-* username = `.apitoken.`, password = $the_api_token
+| username | password |
+|----------|----------|
+| the email address | the password (as set in account details) |
+| `.apitoken.` | the api token (50 hex digits) |
 
 
 ### Show User Display
