@@ -1,11 +1,21 @@
 ## KDV Api
 
+### Authentication
+
+A client application authenticates via the HTTP Authentication request header (Basic auth).
+
+Two kinds of credentials can be used:
+
+* username = $the_email_address, password = $the_password
+* username = `.apitoken.`, password = $the_api_token
+
+
 ### Show User Display
 
     GET /api.php/me/display/
     Authentication: Basic ZW1haWw6cGFzc3dvcmQ=
 
-Return html
+Returns a auto-reloading HTML page
 
 ### Get User Ledger
 
