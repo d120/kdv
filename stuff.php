@@ -28,9 +28,14 @@ function buy_product($user_id, $product) {
   return true;
 }
 
+
 function basiclogin() {
+  if ($_SERVER["PHP_AUTH_USER"]== ".apitoken." && strlen($_SERVER["PHP_AUTH_PW"])==50) {
+    $user = sql("SELECT * FROM users WHERE apitoken=?", [$_SERVER["PHP_AUTH_PW"]], 1);
+    if ($user) return $user;
+  }
   if ($_SERVER["PHP_AUTH_USER"]) {
-    $user = sql("SELECT * FROM users WHERE email = ?", [ $_SERVER["PHP_AUTH_USER"] ], 1);
+    $user = get_login_user($_SERVER["PHP_AUTH_USER"]);
     if ($user && password_verify($_SERVER["PHP_AUTH_PW"], $user["password_hash"])) {
       return $user;
     }
@@ -44,7 +49,7 @@ function basiclogin() {
 
 function login() {
   if ($_POST["email"]) {
-    $user = sql("SELECT * FROM users WHERE email = ?", [ $_POST["email"] ], 1);
+    $user = get_login_user($_POST["email"]);
     if ($user && password_verify($_POST["password"], $user["password_hash"])) {
       $_SESSION["user"] = $user;
       header("Location: ".BASE_URL);

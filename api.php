@@ -119,7 +119,7 @@ case "/me/display/":
 
 case "/me/ledger/":
   $user = basiclogin();
-  header("Content-Type: text/html");
+  header("Content-Type: application/json; charset=utf8");
   $ledger = sql("SELECT * FROM ledger l LEFT OUTER JOIN products p ON l.product_id=p.id
     WHERE user_id = ? AND storno IS NULL ORDER BY timestamp DESC ",
     [ $user["id"] ]);

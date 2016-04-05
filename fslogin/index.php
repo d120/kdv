@@ -6,7 +6,7 @@ $fs_username = trim($_SERVER["PHP_AUTH_USER"]);
 $fs_displayname = preg_replace("/[^a-zA-Z0-9 _.-]/", "", trim($_SERVER["AUTHENTICATE_DISPLAYNAME"]));
 $email = "$fs_username@d120.de";
 
-$user = sql("SELECT * FROM users WHERE email = ?", [ "$fs_username@d120.de" ], 1);
+$user = get_login_user( "$fs_username@d120.de" );
 if ($user) {
   $_SESSION["user"] = $user;
 } else {

@@ -24,3 +24,11 @@ function sql($query, $args, $noquery = false) {
   if ($noquery === true) return $q->rowCount(); elseif ($noquery === 1) return $q->fetch(); else return $q->fetchAll();
 }
 
+function get_login_user($email) {
+  $user = sql("SELECT * FROM users WHERE email = ?", [$email], 1);
+  if ($user && !$user["apitoken"]) {
+    $user["apitoken"] = bin2hex(openssl_random_pseudo_bytes(25));
+    sql("UPDATE users SET apitoken=? WHERE id=? ", [$user["apitoken"], $user["id"]], true);
+  }
+  return $user;
+}

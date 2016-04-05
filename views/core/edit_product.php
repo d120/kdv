@@ -19,6 +19,11 @@
 <div class="col-sm-8"><input type="number" name="price" value="<?= sprintf("%.2f",$product["price"]/100) ?>" class="form-control"></div>
 </div>
 
+<div class="form-group">
+<label for="inputcategory" class="col-sm-4 control-label">Category: </label>
+<div class="col-sm-8"><input type="text" id="inputcategory" name="category" value="<?= $product["category"] ?>" class="form-control"></div>
+</div>
+
 <div class="form-group"><div class="col-sm-8 push-sm-4"><input type='submit' name='save' value='Speichern' class='btn btn-default'></div></div>
 </form>
 

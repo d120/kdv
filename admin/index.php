@@ -42,6 +42,11 @@ function list_scanners() {
   return get_view("scanners", ["scanners" => $scanners]);
 }
 function edit_product() {
+  if($_POST["save"]) {
+    $price = (int)(floatval($_POST["price"])*100);
+    sql("UPDATE products SET name=?,price=?,`code`=?,category=? WHERE id=?",
+      [ $_POST["name"], $price, $_POST["code"], $_POST["category"], $_GET["id"] ], true);
+  }
   $p=sql("SELECT * FROM products WHERE id=?",[$_GET["id"]],1);
   if ($_POST["bestand"]) {
     sql("INSERT INTO ledger (product_id, product_amount, user_id, charge, timestamp) VALUES (?, ?, 1, ?, NOW())",
