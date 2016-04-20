@@ -16,7 +16,7 @@
     <li> <a href="<?= BASE_URL ?>?m=logout">Logout</a></li>
   </ul>
   </div></nav>
-  <?php $menu = array( [ "?m=ledger", "Kontoauszug" ], ["?m=add_payment", "Ein/Auszahlung" ] , ["?m=productlist", "Produktliste"]  , [ "?m=registration" , "Account" ] ); ?>
+  <?php $menu = array( [ "?m=ledger", "Kontoauszug" ], ["?m=add_payment", "Ein/Auszahlung" ] ,  ["?m=wire_transfer", "Überweisung" ] , ["?m=productlist", "Produktliste"]  , [ "?m=registration" , "Account" ] ); ?>
 <?php elseif ($navigation == "admin"): ?>
   <nav class="navbar navbar-inverse navbar-static-top"><div class=container>
   <div class="navbar-header"><a class="navbar-brand" href="<?=BASE_URL?>admin/">KDV Admin</a></div>

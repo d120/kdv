@@ -27,6 +27,9 @@ switch($_GET["m"]) {
     $uid = intval($_SESSION["user"]["id"]);
     $q.= show_registration($uid);
     break;
+  case "wire_transfer":
+    $q.=wire_transfer($_SESSION["user"]["id"]);
+    break;
   case "add_payment":
     $q.=add_payment($_SESSION["user"]["id"], BASE_URL."?m=ledger");
     break;

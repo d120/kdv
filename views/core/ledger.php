@@ -8,7 +8,7 @@
   <thead><tr><th>Datum</th><th>Barcode</th><th>Name</th><th>Price</th></tr></thead>
 <?php  foreach($ledger as $d) { ?>
 <?php $cls = ($d["storno"]) ? "storno" : ""; ?>
-<?php printf("<tr class='%s'><td>%s</td><td>%s</td><td>%s</td><td>%04.2f</td></tr>", $cls, $d["timestamp"], $d["code"], $d["name"], -($d["charge"]/100)); ?>
+<?php printf("<tr class='%s'><td>%s</td><td>%s</td><td>%s</td><td>%04.2f</td></tr>", $cls, $d["timestamp"], $d["code"], ent($d["comment"]? $d["comment"] :$d["name"]), -($d["charge"]/100)); ?>
 <?php } ?>
   </table>
 

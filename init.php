@@ -4,6 +4,9 @@ define("VIEW_DIR", __DIR__."/views/");
 
 include("views.inc.php");
 
+define("PRODID_CASHPAYMENT", 1);
+define("PRODID_WIRETRANSFER", 2);
+
 set_view_var("action", $_SERVER["PHP_SELF"]."?".$_SERVER["QUERY_STRING"]);
 set_view_var("title", "KDV");
 

@@ -7,6 +7,11 @@
 
 <form action="<?= htmlspecialchars($action) ?>" method="post" class="form-horizontal">
 <div class="form-group">
+<label for="inputName" class="col-sm-4 control-label">Kontonummer: </label>
+<div class="col-sm-8"><?=ent(accountNumber($user))?></div>
+</div>
+
+<div class="form-group">
 <label for="inputName" class="col-sm-4 control-label">Name: </label>
 <div class="col-sm-8"><input type="text" name="fullname" value="<?=ent($user["fullname"])?>" class="form-control" id="inputName"></div>
 </div>
@@ -58,6 +63,11 @@
 </form>
 </div></div>
 
+
+<div class="panel panel-default"><div class="panel-heading"><h3 class="panel-title">API-Token</h3></div>
+<div class="panel-body">
+<?= $user["apitoken"] ?>
 </div></div>
 
+</div></div>
 

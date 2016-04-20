@@ -13,16 +13,57 @@ function moneycolor($money) {
 function format_display_output($ok, $timeout, $output) {
   return str_pad("$ok $timeout ", 16, "X") . "\n" . $output;
 }
+function accountNumber($user) {
+  $number = 120000+$user["id"];
+  
+    $stack = 0;
+    $number = str_split(strrev($number));
 
-function buy_product($user_id, $product) {
+    foreach ($number as $key => $value)
+    {
+        if ($key % 2 == 0)
+        {
+            $value = array_sum(str_split($value * 2));
+        }
+        $stack += $value;
+    }
+    $stack %= 10;
+
+    if ($stack != 0)
+    {
+        $stack -= 10;     $stack = abs($stack);
+    }
+
+
+    $number = implode('', array_reverse($number));
+    $number = $number . strval($stack);
+
+    return $number; 
+}
+
+function checkAccountNumber ($card_number) {
+  $card_number_checksum = '';
+  foreach (str_split(strrev((string) $card_number)) as $i => $d) {
+    $card_number_checksum .= $i %2 !== 0 ? $d * 2 : $d;
+  }
+  if( array_sum(str_split($card_number_checksum)) % 10 === 0 ) {
+      return intval(substr($card_number, 2, strlen($card_number)-3));
+  } else {
+      return false;
+  }
+}
+
+function buy_product($user_id, $product, $comment = "", $transfer_uid = null, &$transaction_id = 0) {
+  global $db;
   $debt = sql("SELECT SUM(charge) summe FROM ledger WHERE user_id = ? AND storno IS NULL", [ $user_id ], 1)["summe"];
   $user = sql("SELECT debt_limit FROM users WHERE id = ?", [ $user_id ], 1);
   $max_debt = $user["debt_limit"];
   if ($debt + $product["price"] > $max_debt) {
     return "transaction_failed";
   }
-  sql("INSERT INTO ledger (user_id, product_id, charge, product_amount) VALUES (?,?,?, 1)",
-      [ $user_id, $product["id"], $product["price"] ], true);
+  sql("INSERT INTO ledger (user_id, product_id, charge, product_amount, comment, transfer_uid) VALUES (?,?,?, 1,?,?)",
+      [ $user_id, $product["id"], $product["price"], $comment, $transfer_uid ], true);
+  $transaction_id = $db->lastInsertId();
   if ($user["notification_email"] == 1)
     mail($user["email"], "[kdv] recorded sale worth $product[price]", "Guthaben/Schulden vorher: $debt\n\nProdukt: $product[name]\nPreis: $product[price]\n\nDatum/Uhrzeit: ".date("r"));
   return true;
@@ -69,7 +110,7 @@ function add_payment($uid, $backurl) {
   $user = sql("SELECT * FROM users WHERE id = ?", [$uid], 1);
   if (!$user) return "Bad user id";
   $product_id = intval($_GET["product_id"]);
-  if (!$product_id) $product_id = 1;
+  if (!$product_id) $product_id = PRODID_CASHPAYMENT;
   $product = sql("SELECT * FROM products WHERE id = ?", [ $product_id ], 1);
   if ($_POST["charge"] && $_POST["product_id"] == 1) {
     $product["price"] = floatval(str_replace(",",".",$_POST["charge"])) * 100;
@@ -87,9 +128,39 @@ function add_payment($uid, $backurl) {
   return get_view("add_payment", [ "user" => $user, "product" => $product ]);
 }
 
+function wire_transfer($uid) {
+  $user = sql("SELECT * FROM users WHERE id = ?", [$uid], 1);
+  if (!$user) return "Internal Error";
+  
+  if (count($_POST)) {
+    $product = sql("SELECT * FROM products WHERE id = ?", [ PRODID_WIRETRANSFER ], 1);
+    $product["price"] = floatval(str_replace(",",".",$_POST["charge"])) * 100;
+    if ($product["price"] <= 0) return "Invalid amount";
+    
+    $to_uid = checkAccountNumber($_POST["transfer_to"]);
+    if (!$to_uid) return "Invalid account number";
+    
+    $touser = sql("SELECT * FROM users WHERE id = ?", [$to_uid], 1);
+    if (!$touser) return "User not found";
+    
+    $id1 = $id2 = 0;
+    $verwendungszweck = "Überweisung von $user[email] an $touser[email] : $_POST[verwendungszweck]";
+    $ok = buy_product($user["id"], $product, $verwendungszweck, null, $id1);
+    if ($ok !== true) {
+      return "<div class=well>$ok</div>";
+    }
+    $product["price"] = -$product["price"];
+    $ok = buy_product($touser["id"], $product, $verwendungszweck, $id1, $id2);
+    sql("UPDATE ledger SET transfer_uid = ? WHERE id = ? LIMIT 1 ", [ $id2, $id1 ], true);
+    return "<div class='alert alert-success'><h4>Überweisung erfolgt.</h4></div>";
+    exit;
+  }
+  return get_view("wire_transfer", [ "user" => $user ]);
+}
+
 function show_ledger($uid) {
   $debt = get_user_debt($uid);
-  $ledger = sql("SELECT l.timestamp, l.charge, p.name, p.code, l.storno FROM ledger l LEFT OUTER JOIN products p ON l.product_id=p.id WHERE user_id = ? ORDER BY timestamp DESC", [ $uid ]);
+  $ledger = sql("SELECT l.timestamp, l.charge, p.name, p.code, l.storno, l.comment FROM ledger l LEFT OUTER JOIN products p ON l.product_id=p.id WHERE user_id = ? ORDER BY timestamp DESC", [ $uid ]);
   return get_view("ledger", [ "ledger" => $ledger, "debt" => $debt ]);
 }
 
