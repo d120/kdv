@@ -3,4 +3,23 @@ tr.storno td { text-decoration: line-through; color: #666; }
 .table-lined td { border-bottom: 1px solid #ddd!important; }
 .table-lined th { border-bottom: 2px solid #ccc!important; border-top: 1px solid #ccc!important; }
 
+.navbar-brand>img { display: inline-block; opacity: 0.6; margin-right: 5px; vertical-align: text-top; }
+.navbar-brand:hover>img {opacity:1;}
+.navbar-typ-admin {background: #ffdede; border-color: #ddbbbb;}
+.navbar-typ-admin * {color: #664444!important;}
+
+.messageBar { position: fixed; top: 0; left: 0; right: 0; padding: 10px; background: #FDD835; color: white; font-size: 12pt; z-index: 2000;
+    }
+.progressBar { position: fixed; top: 0; left: 0; width: 30%; height: 5px; background: #0091EA; z-index: 101;
+      animation: slide 5s forwards;
+}
+@keyframes slide {
+    0% { width: 30%; }
+    30% { width: 50%; }
+    100% { width: 60%; }
+}
+.messageBar.error { background: #E53935;  }
+.messageBar.success { background: #43a047;  }
+.messageBar.warning { background: #d09d47;  }
+
 

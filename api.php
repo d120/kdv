@@ -10,21 +10,19 @@ case "/barcodedrop/":
   include("barcodedrop.php");
   break;
 
+case "/searchuser/": session_start();
+  if (!isset($_SESSION["user"])) die("forbidden");
+  $account = sql("select id from users where email=?", [$_GET["email"]], 1);
+  if (!$account)die(json_encode(["success"=>false,"error"=>"ENOENT"]));
+  echo json_encode(["success"=>true, "account_id" => accountNumber($account)]);
+  break;
+
 case "/istgeradejemandda/":
   $last_actions = sql("SELECT MAX(current_state_timeout) t FROM scanners ORDER BY current_state_timeout DESC", []);
   echo $last_actions[0]["t"];
   break;
 
-/*
-case "/regproduct/":
-  sql("INSERT INTO products (price, name, code) VALUES(?,?,?)", [ $_POST["price"], $_POST["name"], $_POST["code"] ], true);
-  $id = sql("SELECT LAST_INSERT_ID() id", [], 1)["id"];
-  if (is_uploaded_file($_FILES["productimage"])) {
-    move_uploaded_file($_FILES["productimage"], "./productimages/".$id.".jpg");
-  }
-  echo "success\n".$id;
-  break;
-*/
+
 
 case "/lastscanned/":
   $code = sql("SELECT current_display FROM scanners ORDER BY current_display_timeout DESC LIMIT 1", [] , 1)["current_display"];
@@ -80,7 +78,7 @@ case "/display/":
     $bg = $parts[0] == "OK" ? "#aaffaa" : ($parts[0] == "SCAN" ? "#aaaaff" : "#ffaaaa");
     $q.= "<pre style='padding:10px; background: $bg;'>".$scanner["current_display"]."</pre>";
   }
-
+$q.= "<div style='float:right;font-size:9pt;color:#888'>".$_SERVER["REMOTE_ADDR"]."</div>";
   if (strtotime($scanner["current_state_timeout"]) <= time()) {
     $q.= "<h2>Herzlich willkommen!</h2>";
   } else {
@@ -103,17 +101,24 @@ case "/display/":
 
 case "/me/display/":
   $user = basiclogin();
-  header("Content-Type: text/html");
-  $q.= "<h2>Hallo ".$user["fullname"]."</h2>";
-  $ledger = sql("SELECT * FROM ledger l LEFT OUTER JOIN products p ON l.product_id=p.id
-    WHERE user_id = ? AND storno IS NULL ORDER BY timestamp DESC LIMIT 3",
-    [ $user["id"] ]);
-  $q.= get_view("ledger", [ "ledger" => $ledger, "mini" => true ]);
+  header("Content-Type: text/html; charset=utf8");
+  $q.= "<table bgcolor='#eee' width=100% style=margin-bottom:1em><tr><td>".$user["fullname"]."</td>";
   $schulden = get_user_debt($user["id"]);
   if ($schulden < 0)
-    $q.= sprintf("<h2>Guthaben: %04.2f</h2>", -($schulden/100));
+    $q.= sprintf("<td bgcolor=#cfc><b>Guthaben: %04.2f", -($schulden/100));
   else
-    $q.= sprintf("<h2>Schulden: %04.2f</h2>", $schulden/100);
+    $q.= sprintf("<td bgcolor=#fcc><b>Schulden: %04.2f", $schulden/100);
+  $q .= "</b></td></tr></table>";
+  $ledger = sql("SELECT * FROM ledger l LEFT OUTER JOIN products p ON l.product_id=p.id
+    WHERE user_id = ? AND storno IS NULL ORDER BY timestamp DESC LIMIT 10",
+    [ $user["id"] ]);
+  $q.="<table width=100%>";
+  foreach($ledger as $d) {
+    $cls = ($d["storno"]) ? "storno" : "";
+    $q.=sprintf("<tr class='%s' style=color:#999;font-size:70%%><td>%s</td><td align=right>%s</td></tr><td colspan=2 style=padding-bottom:1em><span style=float:right;color:%s>%04.2f</span>%s</td></tr>", 
+        $cls, $d["timestamp"], $d["code"], $d["charge"]>0?"#b33":"#3b3", -($d["charge"]/100), ent($d["comment"]? $d["comment"] :$d["name"]));
+  }
+  $q.="</table>";
   echo $q;
   break;
 
@@ -132,7 +137,7 @@ case "/productlist/":
   $user = basiclogin();
   header("Content-Type: application/json; charset=utf-8");
   $products = sql("SELECT * FROM products WHERE disabled_at IS NULL", []);
-  echo json_encode($products);
+  echo json_encode($products,JSON_PRETTY_PRINT);
   break;
 
 case "/me/buy/":

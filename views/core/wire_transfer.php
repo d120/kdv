@@ -1,6 +1,6 @@
 
 <h2>Überweisung</h2>
-<form action="<?= $action ?>" method="post" class="form">
+<form action="<?= $action ?>" method="post" class="form" id="transferform">
 
 <div class="row">
     <div class="col-sm-5">
@@ -23,7 +23,7 @@
         <p><label for="itarget">Empfänger-Kontonummer:</label> 
         <input type="text" required id="itarget" pattern="[0-9]{7}" class="form-control" name="transfer_to"></p>
 
-
+        <button onclick="searchuser()" class="btn btn-default" type="button"><span class="glyphicon glyphicon-search"></span> Benutzer suchen</button>
 
 
     </div>
@@ -37,4 +37,19 @@
 
 </form>
 
-
+<script>
+$("#transferform").submit(function() {
+  if (confirm("Überweisung in Höhe von "+$("#ibetrag").val()+" an Kontonummer "+$("#itarget").val()+" freigeben?")==false) return false;
+});
+function searchuser() {
+  var mail=prompt("Bitte die E-Mail-Adresse des zu suchenden Benutzers eingeben:", "");
+  if (!mail) return;
+  $.get("<?=BASE_URL?>api.php/searchuser/?email=" + escape(mail), function(result) {
+    if (!result.success) {
+      alert("Nicht gefunden");
+    } else {
+      $("#itarget").val(result.account_id);
+    }
+  }, "json");
+}
+</script>

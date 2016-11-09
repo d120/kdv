@@ -1,5 +1,18 @@
 <h2>Moin moin, <?= $name ?></h2>
 
+<h2>Beliebte Produkte</h2>
+<div class="row">
+  <?php foreach($def_products  as $p) : ?>
+<div class="col-xs-6 col-md-2">
+    <a href="<?=BASE_URL?>?m=add_payment&product_id=<?=$p["id"]?>" class="thumbnail" style="height:150px" title="<?=$p["name"]?> (Preis: <?=$p["price"]/100?> €)">
+      <img src="<?=BASE_URL?>productimages/<?=$p["id"]?>.jpg" alt="<?=$p["name"]?>" style="max-height:140px;max-width:100%;">
+    </a>
+  </div>
+  <?php endforeach; ?>
+</div>
+
+
+<h2>Apps</h2>
 <div class="row">
   <div class="col-sm-6 col-md-4">
     <div class="thumbnail">

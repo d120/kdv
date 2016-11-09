@@ -33,6 +33,13 @@ myBtn.click(function() {
 
 <input type="hidden" name="product_id" value="<?= ent($product["id"]) ?>">
 
+<?php if($product["price"]){?>
+<p>
+  <label for="iamount">Anzahl:</label>
+  <input type="number" id="iamount" name="product_amount" value="1" class="form-control">
+</p>
+<?php }?>
+
 </div></div>
 <br>
 <p><button <?=$product["price"]?"":"disabled"?> type="submit" class="btn btn-success"><span class="glyphicon glyphicon-ok"></span>&nbsp;  Buchen</button>
@@ -40,5 +47,8 @@ myBtn.click(function() {
 </p>
 
 </form>
+
+<br>
+<p><img src="<?=BASE_URL?>/productimages/<?=$product["id"]?>.jpg" style="max-height:200px;max-width:100%;" /></p>
 
 

@@ -3,7 +3,7 @@
 <!--zweispaltig--><div class="row"><div class="col-md-6">
 <h3>Produktdaten</h3>
 
-<form action="<?= $action ?>" method="post" class="form-horizontal">
+<form action="<?= $action ?>" method="post" class="form-horizontal" enctype="multipart/form-data">
 <div class="form-group">
 <label for="inputName" class="col-sm-4 control-label">Name: </label>
 <div class="col-sm-8"><input type="text" name="name" value="<?= $product["name"] ?>" class="form-control"></div>
@@ -16,13 +16,24 @@
 
 <div class="form-group">
 <label for="inputPrice" class="col-sm-4 control-label">Preis: </label>
-<div class="col-sm-8"><input type="number" name="price" value="<?= sprintf("%.2f",$product["price"]/100) ?>" class="form-control"></div>
+<div class="col-sm-8"><input type="number" step="any" name="price" value="<?= sprintf("%.2f",$product["price"]/100) ?>" class="form-control"></div>
 </div>
 
 <div class="form-group">
 <label for="inputcategory" class="col-sm-4 control-label">Category: </label>
 <div class="col-sm-8"><input type="text" id="inputcategory" name="category" value="<?= $product["category"] ?>" class="form-control"></div>
 </div>
+
+<div class="form-group">
+<label for="inputimg" class="col-sm-4 control-label">Product image: </label>
+<div class="col-sm-8"><input type="file" id="inputimg" name="productimage"></div>
+</div>
+
+<div class="form-group">
+<label class="col-sm-4 control-label">Flags: </label>
+<div class="col-sm-8"><input type="checkbox" name="flags[1]" value="1" <?=$product["flags"]&1 ? "checked":""?>> Auf Startseite zeigen</div>
+</div>
+
 
 <div class="form-group"><div class="col-sm-8 push-sm-4"><input type='submit' name='save' value='Speichern' class='btn btn-default'></div></div>
 </form>
@@ -34,6 +45,11 @@
 <input type="number" name="bestand" size=5 class='form-control'>
 <input type="submit" value="OK" class='btn btn-default'>
 </form>
+
+
+<h3>Produktbild</h3>
+<img src="<?=BASE_URL?>productimages/<?=$product["id"]?>.jpg" style="max-width: 80%">
+
 <!--zweite spalte--></div><div class="col-md-6">
 
 <h3>Bestand</h3>

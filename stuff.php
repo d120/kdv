@@ -4,6 +4,11 @@ function ent($x) {
   return htmlspecialchars($x, 0, "UTF-8");
 }
 
+function messagebar($cls, $text, $timeout) {
+  if(!isset($_SESSION["msgbar"])) $_SESSION["msgbar"]= [];
+  $_SESSION["msgbar"][] = [ $cls, $text, $timeout ];
+}
+
 function moneycolor($money) {
   if ($money == 0) return "";
   elseif ($money < 0) return "success";
@@ -53,7 +58,7 @@ function checkAccountNumber ($card_number) {
   }
 }
 
-function buy_product($user_id, $product, $comment = "", $transfer_uid = null, &$transaction_id = 0) {
+function buy_product($user_id, $product, $comment = "", $transfer_uid = null, &$transaction_id = 0, $product_amount = 1) {
   global $db;
   $debt = sql("SELECT SUM(charge) summe FROM ledger WHERE user_id = ? AND storno IS NULL", [ $user_id ], 1)["summe"];
   $user = sql("SELECT debt_limit FROM users WHERE id = ?", [ $user_id ], 1);
@@ -61,8 +66,8 @@ function buy_product($user_id, $product, $comment = "", $transfer_uid = null, &$
   if ($debt + $product["price"] > $max_debt) {
     return "transaction_failed";
   }
-  sql("INSERT INTO ledger (user_id, product_id, charge, product_amount, comment, transfer_uid) VALUES (?,?,?, 1,?,?)",
-      [ $user_id, $product["id"], $product["price"], $comment, $transfer_uid ], true);
+  sql("INSERT INTO ledger (user_id, product_id, charge, product_amount, comment, transfer_uid) VALUES (?,?,?, ?,?,?)",
+      [ $user_id, $product["id"], $product["price"], $product_amount, $comment, $transfer_uid ], true);
   $transaction_id = $db->lastInsertId();
   if ($user["notification_email"] == 1)
     mail($user["email"], "[kdv] recorded sale worth $product[price]", "Guthaben/Schulden vorher: $debt\n\nProdukt: $product[name]\nPreis: $product[price]\n\nDatum/Uhrzeit: ".date("r"));
@@ -106,26 +111,49 @@ function get_user_debt($uid) {
   return sql("SELECT SUM(charge) summe FROM ledger WHERE user_id = ? AND storno IS NULL", [ $uid ], 1)["summe"];
 }
 
+
 function add_payment($uid, $backurl) {
   $user = sql("SELECT * FROM users WHERE id = ?", [$uid], 1);
   if (!$user) return "Bad user id";
   $product_id = intval($_GET["product_id"]);
   if (!$product_id) $product_id = PRODID_CASHPAYMENT;
   $product = sql("SELECT * FROM products WHERE id = ?", [ $product_id ], 1);
+  $product_amount = 1;
   if ($_POST["charge"] && $_POST["product_id"] == 1) {
     $product["price"] = floatval(str_replace(",",".",$_POST["charge"])) * 100;
     if ($product["price"] <= 0) return "<div class=well>Ungültiger Betrag</div>";
     if ($_POST["what"] == "deposit") $product["price"] = -1 * $product["price"];
+  } elseif (intval($_POST["product_amount"]) > 0) {
+    $product_amount = intval($_POST["product_amount"]);
+    $product["price"] = $product_amount * $product["price"];
   }
   if (count($_POST) && $product["price"]) {
-    $ok = buy_product($user["id"], $product);
+    // buy_product($user_id, $product, $comment = "", $transfer_uid = null, &$transaction_id = 0, $product_amount = 1)
+    $ok = buy_product($user["id"], $product, "", null, $transaction_id, $product_amount);
     if ($ok !== true) {
       return "<div class=well>$ok</div>";
     }
+    messagebar("success", "Zahlung gespeichert: ".$product["price"]. " / ".$product["name"], 2000);
     header("Location: ".$backurl);
     exit;
   }
   return get_view("add_payment", [ "user" => $user, "product" => $product ]);
+}
+
+
+function storno_payment($uid, $payment_id) {
+  $user = sql("SELECT * FROM users WHERE id = ?", [$uid], 1);
+  if (!$user) die(json_encode(["error" => "Bad user id"]));
+  $payment_id = intval($_GET["payment_id"]);
+  if (!$payment_id) die(json_encode(["error" => "Bad payment id"]));
+  if (count($_POST)) {
+    sql("UPDATE ledger SET storno=NOW() WHERE id=? AND user_id=?", [ $payment_id, $user['id'] ], true);
+
+    echo json_encode([ "success" => true ]);
+  } else {
+    echo json_encode([ "error" => "Method not allowed" ]);
+  }
+  exit();
 }
 
 function wire_transfer($uid) {
@@ -160,7 +188,7 @@ function wire_transfer($uid) {
 
 function show_ledger($uid) {
   $debt = get_user_debt($uid);
-  $ledger = sql("SELECT l.timestamp, l.charge, p.name, p.code, l.storno, l.comment FROM ledger l LEFT OUTER JOIN products p ON l.product_id=p.id WHERE user_id = ? ORDER BY timestamp DESC", [ $uid ]);
+  $ledger = sql("SELECT l.timestamp, l.charge, p.name, p.code, l.storno, l.comment, l.id, l.user_id FROM ledger l LEFT OUTER JOIN products p ON l.product_id=p.id WHERE user_id = ? ORDER BY timestamp DESC", [ $uid ]);
   return get_view("ledger", [ "ledger" => $ledger, "debt" => $debt ]);
 }
 

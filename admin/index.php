@@ -1,7 +1,9 @@
 <?php
 include "../init.php";
 include "../stuff.php";
+require_once "../SimpleImage.class.php";
 header("Content-Type: text/html; charset=utf8");
+session_start();
 
 function userlist() {
   $users = sql("SELECT *, (select sum(charge) from ledger where user_id=u.id and storno is null) summe FROM users u ", []);
@@ -20,7 +22,7 @@ function userlist() {
 
 function new_user() {
   if ($_POST["email"]) {
-    sql("INSERT INTO users (email, debt_limit) VALUES(?)", [ $_POST["email"], DEFAULT_DEBT_LIMIT ], true);
+    sql("INSERT INTO users (email, debt_limit) VALUES(?, ?)", [ $_POST["email"], DEFAULT_DEBT_LIMIT ], true);
     $newId = sql("SELECT LAST_INSERT_ID() id", [], 1)["id"];
     header("Location: ".BASE_URL."admin/?m=user&id=$newId");
     exit;
@@ -30,11 +32,30 @@ function new_user() {
   $q.= "</form>";
   return $q;
 }
+function set_product_img($id, $filespec) {
+  $id=intval($id);
+  $img = new SimpleImage();
+  $img->load($filespec);
+  $img->resizeToHeight(300);
+  $img->save("../productimages/".$id.".jpg");
+
+}
 function new_product() {
-  return get_view("new_product", []);
+  if (count($_POST)) {
+    if (!$_POST["price"] || !$_POST["name"]) die(json_encode(["success"=>false, "error"=>"ERR: Missing price or name"]));
+    $price = (int)(floatval($_POST["price"])*100);
+    sql("INSERT INTO products (price, name, code, category) VALUES(?,?,?,?)", [ $price, $_POST["name"], $_POST["code"], $_POST["category"] ], true);
+    $id = sql("SELECT LAST_INSERT_ID() id", [], 1)["id"];
+    if (is_uploaded_file($_FILES["productimage"]['tmp_name'])) {
+      set_product_img($id, $_FILES["productimage"]['tmp_name']);
+    }
+    die(json_encode([ "success" => true, "product_id" => $id ]));
+  }
+
+  return get_view("new_product", [ "cats" => sql("SELECT DISTINCT category FROM products", []) ]);
 }
 function transactions() {
-  $transactions = sql("SELECT l.user_id, u.fullname, l.timestamp, l.charge, p.name, p.code, l.storno FROM ledger l LEFT OUTER JOIN products p ON l.product_id=p.id LEFT OUTER JOIN users u ON u.id = l.user_id ORDER BY timestamp DESC", []);
+  $transactions = sql("SELECT l.id, l.user_id, u.fullname, l.timestamp, l.charge, p.name, p.code, l.storno FROM ledger l LEFT OUTER JOIN products p ON l.product_id=p.id LEFT OUTER JOIN users u ON u.id = l.user_id ORDER BY timestamp DESC", []);
   return get_view("ledger_glob", [ "ledger" => $transactions ]);
 }
 function list_scanners() {
@@ -44,13 +65,25 @@ function list_scanners() {
 function edit_product() {
   if($_POST["save"]) {
     $price = (int)(floatval($_POST["price"])*100);
-    sql("UPDATE products SET name=?,price=?,`code`=?,category=? WHERE id=?",
-      [ $_POST["name"], $price, $_POST["code"], $_POST["category"], $_GET["id"] ], true);
+    $flags=0;
+    foreach($_POST["flags"] as $k=>$v) $flags |= intval($k);
+    sql("UPDATE products SET name=?,price=?,`code`=?,category=?,flags=? WHERE id=?",
+      [ $_POST["name"], $price, $_POST["code"], $_POST["category"], $flags, $_GET["id"] ], true);
+    if (is_uploaded_file($_FILES["productimage"]['tmp_name'])) {
+      set_product_img(intval($_GET["id"]), $_FILES["productimage"]['tmp_name']);
+      messagebar("success", "Bild hochgeladen", 1000);
+    }
+    messagebar("success", "Produktdaten aktualisiert", 2000);
   }
   $p=sql("SELECT * FROM products WHERE id=?",[$_GET["id"]],1);
+  if(!$p) {
+    messagebar("error", "Produkt nicht gefunden", 5000);
+    header("Location: ".BASE_URL."admin/?m=productlist"); exit;
+  }
   if ($_POST["bestand"]) {
     sql("INSERT INTO ledger (product_id, product_amount, user_id, charge, timestamp) VALUES (?, ?, 1, ?, NOW())",
       [ $p["id"], -intval($_POST["bestand"]), (-intval($_POST["bestand"])) * $p["price"] ], true);
+    messagebar("success", "Bestand angepasst um ".intval($_POST["bestand"])." Einheiten", 1000);
   }
   $ledger = sql("SELECT * FROM ledger WHERE product_id = ? AND storno IS NULL ORDER BY timestamp ASC", [ $p["id"] ]);
 
@@ -71,8 +104,11 @@ switch($_GET["m"]) {
   case "add_payment": $q.=add_payment(intval($_GET["id"]), BASE_URL."admin/?m=userledger&id=".intval($_GET["id"])); break;
   case "scanners": $q.=list_scanners(); break;
   case "product": $q.=edit_product(); $menuactive="productlist"; break;
-  default: $q.= "<br><p class=text-muted>WHERE DO YOU WANT TO GO TODAY?™</p>"; break;
+  case "storno": $q.=storno_payment($_GET["uid"], $_GET["payment_id"]); break;
+  case "": case null: $q.= "<br><p class=text-muted>WHERE DO YOU WANT TO GO TODAY?™</p>"; break;
+  default: $q.="<br><h2>Nicht gefunden</h2>"; break;
 }
 
-load_view("header", [ "content" => $q, "navigation" => "admin", "menuactive" => $menuactive, "displayname" => $_SERVER["AUTHENTICATE_DISPLAYNAME"] ]);
+load_view("header", [ "content" => $q, "navigation" => "admin", "menuactive" => $menuactive, "displayname" => $_SERVER["AUTHENTICATE_DISPLAYNAME"], "msgbar" => $_SESSION["msgbar"] ]);
+$_SESSION["msgbar"] = [];
 
