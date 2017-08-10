@@ -21,6 +21,7 @@ switch($_GET["m"]) {
     break;
   case "logout":
     session_destroy();
+    setcookie("autologin","",time()-9001,"/kdv/");
     header("Location: ".BASE_URL);
     break;
   case "registration":

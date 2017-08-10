@@ -14,7 +14,10 @@ if ($user) {
     [ $email, $fs_displayname, DEFAULT_DEBT_LIMIT, "" ], true);
   $_SESSION["user"] = sql("SELECT * FROM users WHERE email = ?", [ "$fs_username@d120.de" ], 1);
 }
-
-header("Location: ".BASE_URL);
-
+if (isset($_GET["iframe"]))
+    echo "Eile mit Weile<script>top.location='".BASE_URL."'</script>";
+else {
+    header("Location: ".BASE_URL);
+    setcookie("autologin","1",time()+9001, "/kdv/");
+}
 

@@ -1,3 +1,6 @@
+<?php if($_COOKIE["autologin"]) {?>
+<iframe src="fslogin/?iframe=true"></iframe>
+<?php } ?>
 
 <h2>KDV Login</h2>
 
@@ -25,4 +28,3 @@
 <br><br><p>
 <a href="fslogin" class="btn btn-success">Login mit FS-Account</a>
 </p>
-
