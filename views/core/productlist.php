@@ -15,14 +15,19 @@
 <?php foreach($products as $d): 
 $header=$d["category"];
 if ($group!=$header) echo "<tr style='background:#f9f9f9'><td colspan=5 style='font:bold 12pt monospace'>&nbsp;".$header."</td></tr>"; $group=$header; ?>
-<tr><td><a href="?m=product&id=<?=$d["id"]?>"><?= ent($d["code"]) ?></a></td>
-<td><?= ent($d["name"]) ?></td><td><?= sprintf("%04.2f", $d["price"]/100) ?></td>
-<td><?= $d["bestand"] ?></td>
-<td>
-<?php foreach ($action_buttons as $btn){?>
-<a href="<?= sprintf($btn[1], $d["id"]) ?>" class="btn btn-default"><?=$btn[0]?></a>
-<?php } ?>
-</td>
+<tr style='<?= $d['disabled_at'] ? 'color:#aaa;' : '' ?>'>
+  <td><a href="?m=product&id=<?=$d["id"]?>"><?= ent($d["code"]) ?></a></td>
+  <td>
+    <?= ent($d["name"]) ?>
+    <?php if (file_exists('productimages/'.$d['id'].'.jpg')) echo '<img src="'.BASE_URL.'productimages/'.$d["id"].'.jpg" style="max-width:72px;max-height:36px;float:right">'; ?>
+  </td>
+  <td><?= sprintf("%04.2f", $d["price"]/100) ?></td>
+  <td><?= $d["bestand"] ?></td>
+  <td>
+  <?php foreach ($action_buttons as $btn){?>
+  <a href="<?= sprintf($btn[1], $d["id"]) ?>" class="btn btn-default"><?=$btn[0]?></a>
+  <?php } ?>
+  </td>
 </tr>
 <?php endforeach; ?>
 
