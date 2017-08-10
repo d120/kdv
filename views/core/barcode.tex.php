@@ -26,7 +26,7 @@
 \centering
 
 <?php foreach($products as $p): if($p["position"]==99999)continue; ?>
-\product{<?= $p['name'] ?>}{<?= sprintf("%.02f", $p['price']/100) ?>}{<?= $p['code'] ?>}
+\product{<?=latexSpecialChars( $p['name'] )?>}{<?= sprintf("%.02f", $p['price']/100) ?>}{<?= $p['code'] ?>}
 <?php endforeach; ?>
 
 \end{multicols}

@@ -58,6 +58,23 @@ function checkAccountNumber ($card_number) {
   }
 }
 
+function latexSpecialChars( $string )
+{
+    $map = array( 
+            "#"=>"\\#",
+            "$"=>"\\$",
+            "%"=>"\\%",
+            "&"=>"\\&",
+            "~"=>"\\~{}",
+            "_"=>"\\_",
+            "^"=>"\\^{}",
+            "\\"=>"\\textbackslash",
+            "{"=>"\\{",
+            "}"=>"\\}",
+    );
+    return preg_replace_callback( "/([\^\%~\\\\#\$%&_\{\}])/", function($x){return $map[$x];}, $string );
+}
+
 function buy_product($user_id, $product, $comment = "", $transfer_uid = null, &$transaction_id = 0, $product_amount = 1) {
   global $db;
   $debt = sql("SELECT SUM(charge) summe FROM ledger WHERE user_id = ? AND storno IS NULL", [ $user_id ], 1)["summe"];
