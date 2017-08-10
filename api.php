@@ -22,8 +22,6 @@ case "/istgeradejemandda/":
   echo $last_actions[0]["t"];
   break;
 
-
-
 case "/lastscanned/":
   $code = sql("SELECT current_display FROM scanners ORDER BY current_display_timeout DESC LIMIT 1", [] , 1)["current_display"];
   $code = explode("\n", $code);
@@ -177,6 +175,43 @@ case "/me/deposit/":
   $res = buy_product($user["id"], $product);
   if ($res === true) echo json_encode(["success" => true]);
   else echo json_encode(["success" => false, "error" => $res ]);
+  break;
+
+case "/me/wiretransfer/":
+  $user = basiclogin();
+  header("Content-Type: application/json; charset=utf-8");
+
+  $product = sql("SELECT * FROM products WHERE id = ?", [ PRODID_WIRETRANSFER ], 1);
+  $product["price"] = floatval(str_replace(",",".",$_POST["charge"])) * 100;
+  if ($product["price"] <= 0) {
+    echo json_encode(["success" => false, "error" => "invalid_charge"]);
+    return;
+  }
+
+  $to_uid = checkAccountNumber($_POST["transfer_to"]);
+  if (!$to_uid) {
+    $to_uid = sql("SELECT id FROM users WHERE email = ? OR email = ?", [$_POST["transfer_to"], $_POST["transfer_to"]."@d120.de"], 1);
+    if (!$to_uid) {
+      echo json_encode(["success" => false, "error" => "invalid_account_number"]);
+      return;
+    }
+    $to_uid = $to_uid["id"];
+  }
+
+  $touser = sql("SELECT * FROM users WHERE id = ?", [$to_uid], 1);
+  if (!$touser) {
+    echo json_encode(["success" => false, "error" => "user_not_found"]);
+    return;
+  }
+
+  $id1 = $id2 = 0;
+  $verwendungszweck = "Überweisung von $user[email] an $touser[email] : $_POST[verwendungszweck]";
+  $ok = buy_product($user["id"], $product, $verwendungszweck, null, $id1);
+  if ($ok !== true) {
+    echo json_encode(["success" => false, "error" => $ok]);
+  } else {
+    echo json_encode(["success" => true]);
+  }
   break;
 
 default:
