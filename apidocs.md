@@ -79,6 +79,25 @@ Returns JSON:
 * `{ "success" => false, "error" => "invalid_amount" }` otherwise
 
 
+### Transfer Money To Another User
+
+    POST /api.php/me/wiretransfer/
+    Authentication: Basic ZW1haWw6cGFzc3dvcmQ=
+
+    charge=0.23&transfer_to=<recipient>&verwendungszweck=transaction+comment
+
+`<recipient>` may be either the recipients mail address or the recipients account number
+
+Returns JSON:
+
+* `{ "success" => true }` on success
+* `{ "success" => false, "error" => "transaction_failed" }` if sending user is broke
+* `{ "success" => false, "error" => "invalid_charge" }` if charge was not positive a positive number
+* `{ "success" => false, "error" => "invalid_account_number" }` or
+* `{ "success" => false, "error" => "user_not_found" }` if recipient was not found
+
+
+
 ### Get Ad
 
     GET /api.php/ad/
