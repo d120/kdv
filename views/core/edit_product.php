@@ -31,7 +31,10 @@
 
 <div class="form-group">
 <label class="col-sm-4 control-label">Flags: </label>
-<div class="col-sm-8"><input type="checkbox" name="flags[1]" value="1" <?=$product["flags"]&1 ? "checked":""?>> Auf Startseite zeigen</div>
+<div class="col-sm-8">
+<input type="checkbox" name="flags[1]" value="1" <?=$product["flags"]&1 ? "checked":""?>> Auf Startseite zeigen<br>
+<input type="checkbox" name="disable" value="1" <?=$product["disabled_at"] ? "checked":""?>> Ausblenden
+</div>
 </div>
 
 

@@ -46,7 +46,17 @@ switch($_GET["m"]) {
     $q.= storno_payment($_SESSION["user"]["id"], $_GET["payment_id"]);
     break;
   case "": case null:
-    $products = sql("SELECT * FROM products WHERE (flags & 1) = 1", []);
+    $products = sql("select *,max(rank) mr,max(x.counter) mc from(
+    SELECT *,15 rank,0 counter FROM products WHERE (flags & 1) = 1
+    UNION
+    SELECT  p.*,count(l.id)*8000/(timestampdiff(MINUTE,max(l.timestamp),now())) + if(p.flags&1,20,0) rank,
+    count(l.id) counter 
+    FROM ledger l LEFT OUTER JOIN products p ON l.product_id=p.id WHERE user_id = ? GROUP BY p.id 
+    
+    ) x
+    group by id
+    ORDER BY max(rank) DESC LIMIT 18 ", [ $_SESSION["user"]["id"] ]);
+    
     $q.= get_view("welcome_page", [ "name" => ent($_SESSION["user"]["fullname"]), "apitoken"=>$_SESSION["user"]["apitoken"], "def_products" => $products ]);
     break;
   default:

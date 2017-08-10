@@ -10,10 +10,13 @@ function userlist() {
   $q="";
   $q.= "<br><table class='table table-bordered'>";
   $q.= "<thead><tr><th>Id</th><th>Email</th><th>Name</th><th>Kontostand</th><th>Aktion</th></tr></thead>";
+  $summe=0.0;
   foreach($users as $d) {
     $q.= sprintf("<tr><td><a href='?m=user&id=%d'>%d</a></td><td><a href='?m=user&id=%d'>%s</a></td><td>%s</td><td><a class='btn btn-default btn-%s' href='?m=userledger&id=%d'>%04.2f</a></td><td><a href='?m=user&id=%d' class='btn btn-default'>Bearbeiten</a>  <a href='?m=add_payment&id=%d' class='btn btn-default'>Ein/Auszahlung</a></td></tr>",
-        $d["id"], $d["id"], $d["id"], htmlentities($d["email"]), htmlentities($d["fullname"]), moneycolor($d["summe"]), $d["id"], -($d["summe"]/100), $d["id"], $d["id"]);
+      $d["id"], $d["id"], $d["id"], htmlentities($d["email"]), htmlentities($d["fullname"]), moneycolor($d["summe"]), $d["id"], -($d["summe"]/100), $d["id"], $d["id"]);
+    if($d['id']!=1) $summe += $d["summe"];
   }
+  $q.= "<tr><td></td><td>Guthabensumme</td><td></td><td>".-($summe/100)."</td><td></td></tr>";
   $q.= "</table>";
   $q.= "<hr><a href='?m=newuser'>Neuer User</a>";
   return $q;
@@ -66,8 +69,10 @@ function edit_product() {
   if($_POST["save"]) {
     $price = (int)(floatval($_POST["price"])*100);
     $flags=0;
-    foreach($_POST["flags"] as $k=>$v) $flags |= intval($k);
-    sql("UPDATE products SET name=?,price=?,`code`=?,category=?,flags=? WHERE id=?",
+    if (isset($_POST["flags"]))
+      foreach($_POST["flags"] as $k=>$v) $flags |= intval($k);
+    $disable=$_POST["disable"]?"NOW()":"NULL";
+    sql("UPDATE products SET name=?,price=?,`code`=?,category=?,flags=?,disabled_at=$disable WHERE id=?",
       [ $_POST["name"], $price, $_POST["code"], $_POST["category"], $flags, $_GET["id"] ], true);
     if (is_uploaded_file($_FILES["productimage"]['tmp_name'])) {
       set_product_img(intval($_GET["id"]), $_FILES["productimage"]['tmp_name']);
@@ -100,7 +105,7 @@ switch($_GET["m"]) {
   case "newuser": $q.=new_user(); $menuactive="userlist"; break;
   case "newproduct": $q.=new_product(); $menuactive="productlist"; break;
   case "transactions": $q.= transactions(); break;
-  case "productlist": $q.=productlist([[ "Bearbeiten", "?m=product&id=%d" ] ]); break;
+  case "productlist": $q.=productlist([[ "Bearbeiten", "?m=product&id=%d" ] ], true); break;
   case "add_payment": $q.=add_payment(intval($_GET["id"]), BASE_URL."admin/?m=userledger&id=".intval($_GET["id"])); break;
   case "scanners": $q.=list_scanners(); break;
   case "product": $q.=edit_product(); $menuactive="productlist"; break;

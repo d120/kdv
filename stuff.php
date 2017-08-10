@@ -220,8 +220,11 @@ function show_registration($uid, $admin=false) {
                  "user" => $user, "barcodes" => $barcodes ]);
 }
 
-function productlist($show_edit_buttons) {
-  $prods = sql("SELECT *, -(select sum(product_amount) from ledger where product_id=p.id and storno is null) bestand FROM products p ORDER BY category,name ", []);
+function productlist($show_edit_buttons, $show_all=false) {
+  $prods = sql("SELECT *, -(select sum(product_amount) from ledger where product_id=p.id and storno is null) bestand ".
+    "FROM products p ".
+    ($show_all?"":"WHERE disabled_at IS NULL ").
+    "ORDER BY category,name ", []);
   if ($_GET["format"]) {
     if ($_GET["format"] == "csv") {
       header("Content-Type: text/plain; charset=utf8");
@@ -239,7 +242,7 @@ function productlist($show_edit_buttons) {
       if (file_exists("data/tmp.pdf")) {
         header("Content-Type: application/pdf");
         readfile("data/tmp.pdf");
-      }else {
+      } else {
         echo "<pre style='color:red'>$out</pre>";
       }
     } else {
