@@ -214,6 +214,23 @@ case "/me/wiretransfer/":
   }
   break;
 
+case "/me/register_notifications/":
+  $user = basiclogin();
+  header("Content-Type: application/json; charset=utf-8");
+  $token = urldecode($_GET['token']);
+  if ($token == $user['gcm_token']) {
+    echo json_encode(["success"=>true,"changed"=>false]);
+
+  } else {
+    if ($user['gcm_token'])
+      send_gcm_message($user['gcm_token'], ['title'=>'KDV notifications unregistered', 'message' => 'Ein anderes Gerät wurde stattdessen registriert.']);
+
+    sql("UPDATE users SET gcm_token = ? WHERE id = ?", [urldecode($_GET['token']), $user['id']], true);
+    send_gcm_message($_GET['token'], ['title'=>'Hello, world.', 'message'=>'Registriert für KDV-Notifications!']);
+    echo json_encode(["success"=>true,"changed"=>true,"old"=>$user['gcm_token'], "new"=>$token ]);
+  }
+  break;
+
 default:
   echo "FAIL\n404\n";
   break;

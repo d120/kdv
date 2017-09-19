@@ -78,16 +78,18 @@ function latexSpecialChars( $string )
 function buy_product($user_id, $product, $comment = "", $transfer_uid = null, &$transaction_id = 0, $product_amount = 1) {
   global $db;
   $debt = sql("SELECT SUM(charge) summe FROM ledger WHERE user_id = ? AND storno IS NULL", [ $user_id ], 1)["summe"];
-  $user = sql("SELECT debt_limit FROM users WHERE id = ?", [ $user_id ], 1);
+  $user = sql("SELECT * FROM users WHERE id = ?", [ $user_id ], 1);
   $max_debt = $user["debt_limit"];
   if ($debt + $product["price"] > $max_debt) {
+    notify_user($user, "[kdv] transaction failed!", "You're broke. Your payment of ".sprintf("%0.02f",$product["price"]/100)." failed!");
     return "transaction_failed";
   }
   sql("INSERT INTO ledger (user_id, product_id, charge, product_amount, comment, transfer_uid) VALUES (?,?,?, ?,?,?)",
       [ $user_id, $product["id"], $product["price"], $product_amount, $comment, $transfer_uid ], true);
   $transaction_id = $db->lastInsertId();
-  if ($user["notification_email"] == 1)
-    mail($user["email"], "[kdv] recorded sale worth $product[price]", "Guthaben/Schulden vorher: $debt\n\nProdukt: $product[name]\nPreis: $product[price]\n\nDatum/Uhrzeit: ".date("r"));
+  notify_user($user, 
+    sprintf("[kdv] %0.02f€ : %s",$product["price"]/100, $product["name"]), 
+    ($comment ? "Kommentar: $comment\n" : "") . "Guthaben/Schulden vorher: $debt\nProdukt: $product[name]\nPreis: $product[price]\n\nDatum/Uhrzeit: ".date("r"));
   return true;
 }
 
@@ -272,6 +274,33 @@ function productlist($show_edit_buttons, $show_all=false) {
   }
 }
 
+function send_gcm_message($to_id, $data) {
+  $body = json_encode(["data" => $data, "registration_ids" => [$to_id]]);
+  $headers = [
+    "Authorization: key=" . GCM_API_KEY,
+    "Content-Type: application/json"
+  ];
+  $ch = curl_init();
 
+  curl_setopt($ch, CURLOPT_HTTPHEADER, $headers); 
+  curl_setopt($ch, CURLOPT_URL, "https://android.googleapis.com/gcm/send");
+  curl_setopt ($ch, CURLOPT_SSL_VERIFYHOST, 0);
+  curl_setopt ($ch, CURLOPT_SSL_VERIFYPEER, 0);
+  curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+  curl_setopt($ch, CURLOPT_POSTFIELDS, $body);
+  $response = curl_exec($ch);
+  //var_dump( $response );
+  curl_close($ch);
+  return $response;
+}
+
+function notify_user($user, $title, $message) {
+  if ($user['gcm_token']) {
+    send_gcm_message($user['gcm_token'], ["title"=>$title, "message"=>$message]);
+  }
+  if ($user['email_notification']) {
+    mail($user['email'], $title, $message);
+  }
+}
 
 
