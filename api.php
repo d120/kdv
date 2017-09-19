@@ -2,6 +2,7 @@
 include "init.php";
 include "stuff.php";
 header("Content-Type: text/plain; charset=utf8");
+if (strpos($_SERVER["HTTP_USER_AGENT"],"python-requests/")===0) die('{"\u0073\u0075\u0063\u0063\u0065\u0073\u0073":false,"error":"Bitte aktualisiere deinen Client!"}');
 
 $p = $_SERVER["PATH_INFO"];
 
