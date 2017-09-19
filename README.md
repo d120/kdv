@@ -1,4 +1,6 @@
 # mwKDV
+[![Code Quality](https://img.shields.io/badge/code%20quality-10%2F10-brightgreen.svg)](#lolnope)
+[![License: AGPL v3](https://img.shields.io/badge/License-AGPL%20v3-blue.svg)](https://www.gnu.org/licenses/agpl-3.0)
 
 Online-Tool zur Führung einer "Kasse des Vertrauens"
 
