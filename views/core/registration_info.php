@@ -66,8 +66,19 @@
 
 <div class="panel panel-default"><div class="panel-heading"><h3 class="panel-title">API-Token</h3></div>
 <div class="panel-body">
-<?= $user["apitoken"] ?>
+<p id="apitoken_text"><?= $user["apitoken"] ?></p>
+
+<div id="apitoken_qrcode" width="width:100px;height:100px;margin:10px;"></div>
+
 </div></div>
 
 </div></div>
+
+<script src="<?= BASE_URL?>css/qrcode.js"></script>
+<script>
+var qr = new QRCode("apitoken_qrcode");
+var token = document.getElementById("apitoken_text").innerText;
+
+qr.makeCode("apitoken:"+token);
+</script>
 
