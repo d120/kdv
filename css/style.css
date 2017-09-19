@@ -23,3 +23,5 @@ tr.storno td { text-decoration: line-through; color: #666; }
 .messageBar.warning { background: #d09d47;  }
 
 span.ctr { background: #f00; color: white; border-radius: 1em; padding: 3px 7px; font-size: 140%; position: absolute; margin: 10px;   }
+.col-comment { word-break: break-all; }
+
