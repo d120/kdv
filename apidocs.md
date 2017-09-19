@@ -96,6 +96,19 @@ Returns JSON:
 * `{ "success" => false, "error" => "invalid_account_number" }` or
 * `{ "success" => false, "error" => "user_not_found" }` if recipient was not found
 
+### Register for GCM Push Notifications
+
+    GET /api.php/me/register_notifications/?token=<gcm_token>
+    Authentication: Basic ZW1haWw6cGFzc3dvcmQ=
+
+`<gcm_token>` must be a valid gcm registration token or the string `null` to unregister.
+
+Returns JSON:
+
+* `{ "success" => true, "changed" => true }` if the registriation was successful
+* `{ "success" => true, "changed" => false }` if this token is already registered
+* `{ "success" => false, "message" => "InvalidRegistration" }` if an invalid token was passed
+* `{ "success" => true }` if unregistration was successful
 
 
 ### Get Ad
