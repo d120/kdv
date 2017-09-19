@@ -238,7 +238,7 @@ case "/me/register_notifications/":
       sql("UPDATE users SET gcm_token = ? WHERE id = ?", [urldecode($_GET['token']), $user['id']], true);
       echo json_encode(["success"=>true,"changed"=>true,"old"=>$user['gcm_token'], "new"=>$token ]);
     } else {
-      echo json_encode(["success"=>false,"message"=>$response["results"][0]["error"]]);
+      echo json_encode(["success"=>false,"error"=>$response["results"][0]["error"]]);
     }
   }
   break;

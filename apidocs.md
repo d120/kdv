@@ -107,7 +107,7 @@ Returns JSON:
 
 * `{ "success" => true, "changed" => true }` if the registriation was successful
 * `{ "success" => true, "changed" => false }` if this token is already registered
-* `{ "success" => false, "message" => "InvalidRegistration" }` if an invalid token was passed
+* `{ "success" => false, "error" => "InvalidRegistration" }` if an invalid token was passed
 * `{ "success" => true }` if unregistration was successful
 
 
