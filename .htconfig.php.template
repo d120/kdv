@@ -9,4 +9,10 @@ define("ABC_REGISTER",   "2110100001000");
 define("ABC_REMOVECARD", "2110100002007");
 define("ABC_STORNO",     "2110100003004");
 
+define("DEFAULT_DEBT_LIMIT_ANONYMOUS", "0");
+define("DEFAULT_DEBT_LIMIT", "1000");   // 1000 = 10.00 eur
+
+define("GCM_API_KEY", "");
+
+define("API_V2_RESTRICT_IP", '');
 

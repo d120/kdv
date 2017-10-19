@@ -84,11 +84,11 @@ function buy_product($user_id, $product, $comment = "", $transfer_uid = null, &$
     notify_user($user, "[kdv] transaction failed!", "You're broke. Your payment of ".sprintf("%0.02f",$product["price"]/100)." failed!");
     return "transaction_failed";
   }
-  sql("INSERT INTO ledger (user_id, product_id, charge, product_amount, comment, transfer_uid) VALUES (?,?,?, ?,?,?)",
-      [ $user_id, $product["id"], $product["price"], $product_amount, $comment, $transfer_uid ], true);
+  sql("INSERT INTO ledger (user_id, product_id, charge, product_amount, comment, transfer_uid, client_ua, client_addr) VALUES (?,?,?, ?,?,?,?,?)",
+      [ $user_id, $product["id"], $product["price"], $product_amount, $comment, $transfer_uid, $_SERVER["REQUEST_URI"]." ".$_SERVER["HTTP_USER_AGENT"], $_SERVER["REMOTE_ADDR"] ], true);
   $transaction_id = $db->lastInsertId();
-  notify_user($user, 
-    sprintf("[kdv] %0.02f€ : %s",$product["price"]/100, $product["name"]), 
+  notify_user($user,
+    sprintf("[kdv] %0.02f€ : %s",$product["price"]/100, $product["name"]),
     ($comment ? "Kommentar: $comment\n" : "") . "Guthaben/Schulden vorher: $debt\nProdukt: $product[name]\nPreis: $product[price]\n\nDatum/Uhrzeit: ".date("r"));
   return true;
 }
