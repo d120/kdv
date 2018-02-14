@@ -166,9 +166,11 @@ function storno_payment($uid, $payment_id) {
   $payment_id = intval($_GET["payment_id"]);
   if (!$payment_id) die(json_encode(["error" => "Bad payment id"]));
   if (count($_POST)) {
-    sql("UPDATE ledger SET storno=NOW() WHERE id=? AND user_id=?", [ $payment_id, $user['id'] ], true);
-
-    echo json_encode([ "success" => true ]);
+    $ok=sql("UPDATE ledger SET storno=NOW() WHERE id=? AND user_id=? AND transfer_uid IS NULL", [ $payment_id, $user['id'] ], true);
+    if ($ok)
+      echo json_encode([ "success" => true ]);
+    else
+      echo json_encode([ "error" => "Payment not found or cancellation not allowed" ]);
   } else {
     echo json_encode([ "error" => "Method not allowed" ]);
   }
