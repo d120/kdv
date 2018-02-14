@@ -210,6 +210,13 @@ case "/me/wiretransfer/":
   $ok = buy_product($user["id"], $product, $verwendungszweck, null, $id1);
   if ($ok !== true) {
     echo json_encode(["success" => false, "error" => $ok]);
+    return;
+  }
+  $product["price"] = -$product["price"];
+  $ok = buy_product($touser["id"], $product, $verwendungszweck, $id1, $id2);
+  sql("UPDATE ledger SET transfer_uid = ? WHERE id = ? LIMIT 1 ", [ $id2, $id1 ], true);
+if ($ok !== true) {
+    echo json_encode(["success" => false, "error" => $ok]);
   } else {
     echo json_encode(["success" => true]);
   }
