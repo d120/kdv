@@ -230,7 +230,7 @@ case "/me/register_notifications/":
 
   } else {
 
-    $result = json_decode(send_gcm_message($_GET['token'], ['title'=>'Hello, world.', 'message'=>'Registriert für KDV-Notifications!']));
+    $result = json_decode(send_gcm_message($_GET['token'], ['title'=>'Hello, world.', 'message'=>"Registriert für KDV-Notifications!\nnewToken=$token\noldToken=$user[gcm_token]"]), true);
     if ($result['success']>0) {
       if ($user['gcm_token'])
         send_gcm_message($user['gcm_token'], ['title'=>'KDV notifications unregistered', 'message' => 'Ein anderes Gerät wurde stattdessen registriert.']);

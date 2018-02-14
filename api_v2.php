@@ -3,9 +3,9 @@ include "init.php";
 include "stuff.php";
 header("Content-Type: text/plain; charset=utf8");
 
-function diejsonerror($err) {
-    http_response_code(500);
-    echo json_encode(["error" => "500", "message" => $err]);
+function diejsonerror($err, $code=500) {
+    http_response_code($code);
+    echo json_encode(["error" => "$code", "message" => $err]);
     die();
 }
 
@@ -15,8 +15,10 @@ header("Content-Type: application/json; charset=utf8");
 if (strpos($_SERVER['CONTENT_TYPE'],'application/json')!==false) {
   $_POST = json_decode(file_get_contents('php://input'), true);
 }
-if (strpos($_SERVER["REMOTE_ADDR"], API_V2_IP_RESTRICT) !== 0) {
-  die("Forbidden! $_SERVER[REMOTE_ADDR]");
+if (strpos($_SERVER["REMOTE_ADDR"], API_V2_IP_RESTRICT) !== 0 && !($_SERVER["PHP_AUTH_USER"] == "strichliste" && $_SERVER["PHP_AUTH_PW"] == API_V2_TOKEN)) {
+  var_dump($_SERVER);
+  header("WWW-Authenticate: Basic realm=\"strichliste\"");
+  diejsonerror("Forbidden! $_SERVER[REMOTE_ADDR]", 401);
 }
 $routes['^GET /user$'] = 'api_list_users';
 function api_list_users($route) {
