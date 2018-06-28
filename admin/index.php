@@ -95,7 +95,28 @@ function edit_product() {
   return get_view("edit_product", ["product"=>$p, "bestand" => $ledger]);
 
 }
-
+function stocktaking_update() {
+    $id = intval($_POST["product_id"]);
+    $p=sql("SELECT * FROM products WHERE id=?",[$id],1);
+    if (!$p) die(json_encode(["success"=>false, "error"=>"product not found"]));
+    
+    $bestand=sql("select sum(product_amount) amount from ledger where product_id=? and storno is null",[$id],1);
+    $old_value = -intval($bestand['amount']);
+    
+    if (isset($_POST["add_value"])) {
+        $new_value = intval($_POST["add_value"]) + $old_value;
+    } elseif(isset($_POST["set_value"])) {
+        $new_value = intval($_POST["set_value"]);
+    } else {
+        die(json_encode(["success"=>false, "error"=>"nothing to do"]));
+    }
+    $diff_value = $old_value-$new_value;
+    if($diff_value==0) 
+     die(json_encode(["success"=>false, "error"=>"nothing to do $old_value $new_value $diff_value"]));
+    sql("INSERT INTO ledger (product_id, product_amount, user_id, charge, timestamp, comment) VALUES (?, ?, 1, ?, NOW(), ?)",
+        [ $id, $diff_value, $diff_value * $p["price"], "Inventur | $_SERVER[PHP_AUTH_USER] | $_POST[expr] | $p[name]" ], true);
+    die(json_encode([ "success" => true, "product_id" => $id, "new_value" => $new_value ]));
+}
 
 $menuactive = $_GET["m"];
 switch($_GET["m"]) {
@@ -106,6 +127,8 @@ switch($_GET["m"]) {
   case "newproduct": $q.=new_product(); $menuactive="productlist"; break;
   case "transactions": $q.= transactions(); break;
   case "productlist": $q.=productlist([[ "Bearbeiten", "?m=product&id=%d" ] ], true); break;
+  case "stocktaking": $q.=productlist('<input type="text" value="" data-stocktake-prodid="%d">', true); break;
+  case "stocktaking_update": stocktaking_update(); exit;
   case "add_payment": $q.=add_payment(intval($_GET["id"]), BASE_URL."admin/?m=userledger&id=".intval($_GET["id"])); break;
   case "scanners": $q.=list_scanners(); break;
   case "product": $q.=edit_product(); $menuactive="productlist"; break;
