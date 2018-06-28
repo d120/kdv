@@ -4,7 +4,7 @@
 </h2>
 <?php endif; ?>
 
-  <table border='1' class="table table-bordered table-striped" style="width:auto">
+  <table border='1' class="table table-bordered table-striped ledgertable" style="width:auto">
   <thead><tr><th>Datum</th><th>Barcode</th><th>Name</th><th>Price</th><th></th></tr></thead>
 <?php
 $i = 0;

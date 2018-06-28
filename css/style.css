@@ -24,4 +24,9 @@ tr.storno td { text-decoration: line-through; color: #666; }
 
 span.ctr { background: #f00; color: white; border-radius: 1em; padding: 3px 7px; font-size: 140%; position: absolute; margin: 10px;   }
 .col-comment { word-break: break-all; }
+@media screen and (max-width: 700px) {
+  table.ledgertable tr { display: block; padding: 10px; border-bottom: 1px solid #bbb; }
+  table.ledgertable td { display: inline-block; padding: 0 !important; margin-right: 10px; font-weight: bold; border: 0!important; }
+  table.ledgertable td.col-comment { display: block; font-weight: normal; margin-right: 0; }
 
+}
