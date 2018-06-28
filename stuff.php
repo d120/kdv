@@ -1,7 +1,7 @@
 <?php
 
 function ent($x) {
-  return htmlspecialchars($x, 0, "UTF-8");
+  return htmlspecialchars($x, ENT_QUOTES, "UTF-8");
 }
 
 function messagebar($cls, $text, $timeout) {
