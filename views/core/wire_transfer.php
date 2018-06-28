@@ -24,7 +24,8 @@
         <input type="text" required id="itarget" pattern="[0-9]{7}" class="form-control" name="transfer_to"></p>
 
         <button onclick="searchuser()" class="btn btn-default" type="button"><span class="glyphicon glyphicon-search"></span> Benutzer suchen</button>
-
+        <br><br>
+        <div id="userlist"></div>
 
     </div>
 </div>
@@ -52,4 +53,11 @@ function searchuser() {
     }
   }, "json");
 }
+$.get("<?=BASE_URL?>api.php/last_contacts/", function(result) {
+    result.accounts.forEach((x)=>{
+        var btn = $("<input type='button'>");
+        btn.val(x.fullname); btn.click(()=>{ $("#itarget").val(x.account_number); });
+        $("#userlist").append(btn)//.append("<br>");
+    });
+}, "json");
 </script>

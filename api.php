@@ -12,10 +12,20 @@ case "/barcodedrop/":
   break;
 
 case "/searchuser/": session_start();
-  if (!isset($_SESSION["user"])) die("forbidden");
+  if (isset($_SESSION["user"])) $user = $_SESSION["user"]; else $user = basiclogin();
+  
   $account = sql("select id from users where email=?", [$_GET["email"]], 1);
   if (!$account)die(json_encode(["success"=>false,"error"=>"ENOENT"]));
   echo json_encode(["success"=>true, "account_id" => accountNumber($account)]);
+  break;
+
+case "/last_contacts/": session_start();
+  if (isset($_SESSION["user"])) $user = $_SESSION["user"]; else $user = basiclogin();
+  header("Content-Type: application/json; charset=utf8");
+  $accounts = sql("select users.id,users.fullname from ledger l1 inner join ledger l2 on l1.transfer_uid=l2.id inner join users on l2.user_id=users.id 
+    WHERE l1.user_id=? GROUP BY users.id order by max(l1.timestamp) DESC", [$user["id"]]);
+  foreach($accounts as &$d) $d["account_number"]= accountNumber($d);
+  echo json_encode(["success"=>true, "accounts" => $accounts]);
   break;
 
 case "/istgeradejemandda/":
@@ -100,8 +110,9 @@ $q.= "<div style='float:right;font-size:9pt;color:#888'>".$_SERVER["REMOTE_ADDR"
 
 case "/me/display/":
   $user = basiclogin();
-  header("Content-Type: text/html; charset=utf8");
-  $q.= "<table bgcolor='#eee' width=100% style=margin-bottom:1em><tr><td>".$user["fullname"]."</td>";
+  header("Content-Type: text/html; charset=utf-8");
+  $q.= "<html><head><meta charset='utf-8'></head><body><noscript><div style='background:red;padding:100px 10px'>FEHLER: Bitte Javascript aktivieren!</div><br><br><br><br></noscript>";
+  $q.= "<table bgcolor='#eee' width=100% style=margin-bottom:1em>\n\n<tr><td>".htmlentities($user["fullname"],0,"UTF-8")."</td>";
   $schulden = get_user_debt($user["id"]);
   if ($schulden < 0)
     $q.= sprintf("<td bgcolor=#cfc><b>Guthaben: %04.2f", -($schulden/100));
@@ -117,7 +128,7 @@ case "/me/display/":
     $q.=sprintf("<tr class='%s' style=color:#999;font-size:70%%><td>%s</td><td align=right>%s</td></tr><td colspan=2 style=padding-bottom:1em><span style=float:right;color:%s>%04.2f</span>%s</td></tr>", 
         $cls, $d["timestamp"], $d["code"], $d["charge"]>0?"#b33":"#3b3", -($d["charge"]/100), ent($d["comment"]? $d["comment"] :$d["name"]));
   }
-  $q.="</table>";
+  $q.="</table></body></html>";
   echo $q;
   break;
 
